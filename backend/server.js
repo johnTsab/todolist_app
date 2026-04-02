@@ -3,8 +3,8 @@ const cors = require('cors');
 app = express();
 
 app.use(cors({
-    origin: 'http://localhost:4200', // ← εμπιστεύσου μόνο το Angular app
-    credentials: true                // ← για να περνάνε τα cookies (refresh token)
+    origin: 'https://todolist-app-kappa-jet.vercel.app',
+  credentials: true            
 }));
 
 const conditionalJSON = (req,res,next) => {
