@@ -1,0 +1,80 @@
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 100vh;
+}
+
+form {
+  background-color: #202020;
+  border: 1px solid #2e2e2e;
+  border-radius: 8px;
+  padding: 32px 28px;
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+input {
+  width: 100%;
+  padding: 8px 10px;
+  background-color: #191919;
+  border: 1px solid #2e2e2e;
+  border-radius: 4px;
+  color: #e8e8e6;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+input::placeholder {
+  color: #555555;
+}
+
+input:focus {
+  border-color: #555555;
+  background-color: #1e1e1e;
+}
+
+input:hover:not(:focus) {
+  border-color: #3a3a3a;
+}
+
+button {
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+
+button[type="submit"] {
+  background-color: #2383e2;
+  color: #ffffff;
+}
+
+button[type="submit"]:hover {
+  background-color: #1a6fc2;
+}
+
+button[type="submit"]:active {
+  opacity: 0.85;
+}
+
+button[type="logout"] {
+  background-color: transparent;
+  color: #9b9b9b;
+  border: 1px solid #2e2e2e;
+}
+
+button[type="logout"]:hover {
+  background-color: #2a2a2a;
+  color: #e8e8e6;
+}

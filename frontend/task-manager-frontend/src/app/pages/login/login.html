@@ -1,0 +1,68 @@
+<div class="login-page">
+
+  <!-- Left Panel -->
+  <aside class="login-left">
+    <div class="brand">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+    <rect x="1" y="1" width="26" height="26" rx="5" 
+          stroke="#e8d5a3" stroke-width="1.5"/>
+    <polyline points="7,15 12,20 21,9" 
+              stroke="#e8d5a3" stroke-width="2" 
+              stroke-linecap="round" 
+              stroke-linejoin="round"/>
+  </svg>
+      <span class="brand-name">TaskFlow</span>
+    </div>
+    <div class="brand-tagline">
+      <p>Organize your work,<br><em>simply.</em></p>
+    </div>
+  </aside>
+
+  <!-- Right Panel -->
+  <main class="login-right">
+    <div class="login-card">
+
+      <div class="login-header">
+        <h2>Welcome back</h2>
+        <p>Sign in to continue</p>
+      </div>
+
+      <form class="login-form" (ngSubmit)="onSubmit()">
+        <div class="field-group">
+          <label class="field-label">Username</label>
+          <input
+            class="input-field"
+            [(ngModel)]="username"
+            name="username"
+            placeholder="your username"
+            autocomplete="username"
+          />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Password</label>
+          <input
+            class="input-field"
+            [(ngModel)]="password"
+            name="password"
+            type="password"
+            placeholder="••••••••"
+            autocomplete="current-password"
+          />
+        </div>
+
+        <button class="btn-submit" type="submit">Sign in →</button>
+      </form>
+      @if (errorMessage) {
+  <p class="error-message">{{ errorMessage }}</p>
+}
+
+      <p class="login-footer">
+        No account? <a class="link" routerLink="/register" (click)="router.navigate(['/register'])">Register</a>
+      </p>
+
+    </div>
+  </main>
+
+
+</div>

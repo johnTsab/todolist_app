@@ -1,0 +1,89 @@
+<div class="register-page">
+
+  <!-- Left Panel -->
+  <aside class="register-left">
+    <div class="brand">
+      <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
+        <rect x="1" y="1" width="26" height="26" rx="5" stroke="#e8d5a3" stroke-width="1.5"/>
+        <polyline points="7,15 12,20 21,9" stroke="#e8d5a3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="brand-name">TaskFlow</span>
+    </div>
+    <div class="brand-tagline">
+      <p>Start organizing<br><em>today.</em></p>
+    </div>
+  </aside>
+
+  <!-- Right Panel -->
+  <main class="register-right">
+    <div class="register-card">
+
+      <div class="register-header">
+        <h2>Create account</h2>
+        <p>Join TaskFlow and get started</p>
+      </div>
+
+      <form class="register-form" (ngSubmit)="onSubmit()">
+
+        <div class="field-group">
+          <label class="field-label">Username</label>
+          <input
+            class="input-field"
+            [(ngModel)]="username"
+            name="username"
+            placeholder="choose a username"
+            autocomplete="username"
+          />
+        </div>
+
+        <label class="field-label">Email</label>
+  <input
+    class="input-field"
+    [(ngModel)]="email"
+    name="email"
+    type="email"
+    placeholder="your@email.com"
+  />
+        <div class="field-group">
+          <label class="field-label">Password</label>
+          <input
+            class="input-field"
+            [(ngModel)]="password"
+            name="password"
+            type="password"
+            placeholder="••••••••"
+            autocomplete="new-password"
+          />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Confirm password</label>
+          <input
+            class="input-field"
+            [(ngModel)]="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            placeholder="••••••••"
+            autocomplete="new-password"
+          />
+        </div>
+
+        @if (errorMessage) {
+          <p class="error-message">{{ errorMessage }}</p>
+        }
+
+        @if (successMessage) {
+          <p class="success-message">{{ successMessage }}</p>
+        }
+
+        <button class="btn-submit" type="submit">Create account →</button>
+      </form>
+
+      <p class="register-footer">
+        Already have an account? <a class="link" routerLink="/login">Sign in</a>
+      </p>
+
+    </div>
+  </main>
+
+</div>

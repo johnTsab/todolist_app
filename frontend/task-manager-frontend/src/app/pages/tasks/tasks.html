@@ -1,0 +1,158 @@
+<div class="tasks-page">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo" id="logo-mark">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+    <rect x="1" y="1" width="26" height="26" rx="5" 
+          stroke="#e8d5a3" stroke-width="1.5"/>
+    <polyline points="7,15 12,20 21,9" 
+              stroke="#e8d5a3" stroke-width="2" 
+              stroke-linecap="round" 
+              stroke-linejoin="round"/>
+  </svg>
+      <h1>TaskFlow</h1>
+    </div>
+
+    <div class="sidebar-user">{{ username || username}}</div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" (click)="router.navigate(['/tasks'])">My Tasks</button>
+      <button class="nav-item" (click)="router.navigate(['/logs'])">My Activity</button>
+      @if(isAdmin){
+        <button class="nav-item" (click)="router.navigate(['/admin'])">Admin Panel</button>
+      }
+    </nav>
+
+    <div class="sidebar-bottom">
+      <button class="btn-logout" (click)="onLogout()">← Logout</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="tasks-main">
+
+    <h2 class="page-title">My Tasks</h2>
+
+    <!-- Add Task -->
+    <section class="add-task-section">
+      <form class="form-row" (ngSubmit)="onAddTask()">
+        <input
+          class="input-field"
+          [(ngModel)]="newTaskTitle"
+          name="title"
+          placeholder="Add a task..."
+          required
+        />
+        <input
+          class="input-field"
+          [(ngModel)]="newTaskDescription"
+          name="description"
+          placeholder="Description (optional)"
+        />
+        <button class="btn-add" type="submit">+ Add</button>
+      </form>
+    </section>
+
+    <!-- Count -->
+    <div class="tasks-meta">
+      <span class="task-count">{{ tasks.length }} task(s)</span>
+    </div>
+
+    <!-- List -->
+    <section class="task-list">
+
+      @for (task of tasks; track task.id) {
+        @if(editingTask?.id===task.id){
+          <div class="edit-panel">
+      <input class="input-field" [(ngModel)]="editTitle" name="editTitle" placeholder="Title" />
+      <input class="input-field" [(ngModel)]="editDescription" name="editDescription" placeholder="Description (optional)" />
+      <div class="edit-actions">
+        <button class="btn-add" (click)="onSaveEdit()">Save</button>
+        <button class="btn-cancel" (click)="onCancelEdit()">Cancel</button>
+      </div>
+    </div>
+        }@else {
+           <div class="task-card" [class.completed]="task.is_completed">
+          <div class="task-card-left">
+            <div class="task-status-dot" [class.done]="task.is_completed" (click)="onToggleComplete(task)"></div>
+            <div class="task-info">
+              <h3 class="task-title">{{ task.title }}
+               @if(task.subtaskCount!=0){
+                  <span class="subtask-counter">↳ {{ task.subtaskCount }} subtask(s)</span>
+               }
+              </h3>
+              <p class="task-desc">{{ task.description || '—' }}</p>
+            </div>
+          </div>
+          <div class="task-card-actions">
+            <button class="btn-action btn-subtasks" (click)="onViewSubtasks(task)">Subtasks</button>
+            <button class="btn-action btn-edit" (click)="onEditTask(task)">Edit</button>
+            <button class="btn-action btn-delete" (click)="onDeleteTask(task)">Delete</button>
+          </div>
+        </div>
+
+        }
+       
+      }
+
+      @if (tasks.length === 0) {
+        <div class="empty-state">
+          <span class="empty-icon">◎</span>
+          <p>No tasks yet — add one above!</p>
+        </div>
+      }
+
+    </section>
+
+    <!--Sub tasks Panel-->
+   @if (selectedTask) {
+  <div class="subtasks-overlay" (click)="onClosePanel()"></div>
+  <aside class="subtasks-panel">
+    
+    <div class="panel-header">
+      <div class="panel-title">
+        <h3>{{ selectedTask.title }}</h3>
+        <span class="panel-sub">Subtasks</span>
+      </div>
+      <button class="btn-close" (click)="onClosePanel()">✕</button>
+    </div>
+
+    <div class="panel-body">
+      @for (subtask of subtasks; track subtask.id) {
+        <div class="subtask-item" [class.completed]="subtask.is_completed">
+          <div class="task-status-dot" [class.done]="subtask.is_completed" (click)="onToggleCompleteSub(subtask)"></div>
+          <div class="subtask-info">
+          <span class="subtask-title">{{ subtask.title }}</span>
+          <span class="subtask-description">{{subtask.description}}</span>
+          </div>
+          <button class="btn-delete" (click)="onDeleteSubtask(subtask.id)">Delete</button>
+        </div>
+      }
+
+      @if (subtasks.length === 0) {
+        <p class="panel-empty">No subtasks yet.</p>
+      }
+    </div>
+
+    <div class="panel-footer">
+      <input 
+        class="input-field" 
+        [(ngModel)]="newSubtaskTitle" 
+        name="newSubtaskTitle"
+        placeholder="Add a subtask..." 
+      />
+      <input
+        class="input-field" 
+        [(ngModel)]="newSubTaskDescription" 
+        name="newSubTaskDescription"
+        placeholder="Description (optional)" 
+      />
+      <button class="btn-add" (click)="onAddSubtask()">+ Add</button>
+    </div>
+
+  </aside>
+}
+  </main>
+
+</div>

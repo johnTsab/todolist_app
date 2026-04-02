@@ -1,0 +1,137 @@
+<div class="admin-page">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <rect x="1" y="1" width="26" height="26" rx="5" stroke="#e8d5a3" stroke-width="1.5"/>
+        <polyline points="7,15 12,20 21,9" stroke="#e8d5a3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <h1>TaskFlow</h1>
+    </div>
+
+    <div class="sidebar-user">{{ username }}</div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item" (click)="router.navigate(['/tasks'])">My Tasks</button>
+      <button class="nav-item" (click)="router.navigate(['/logs'])">Activity</button>
+      <button class="nav-item active">Users</button>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <button class="btn-logout" (click)="router.navigate(['/login'])">← Logout</button>
+    </div>
+  </aside>
+
+  <!-- Users List -->
+  <div class="users-panel">
+    <div class="users-title">All Users</div>
+
+    @for (user of users; track user.id) {
+      <div class="user-item" 
+           [class.selected]="selectedUser?.id === user.id"
+           (click)="onSelectUser(user)">
+        <div class="user-avatar">{{ user.username.slice(0,2) }}</div>
+        <div class="user-info">
+          <span class="user-name">{{ user.username }}</span>
+          <span class="user-role">{{ user.role }}</span>
+        </div>
+      </div>
+    }
+
+    @if (users.length === 0) {
+      <p class="empty-small">No users found.</p>
+    }
+  </div>
+
+  <!-- Main Content -->
+  <main class="admin-main">
+
+    @if (!selectedUser) {
+      <div class="empty-state">
+        <span class="empty-icon">◎</span>
+        <p>Select a user to manage their tasks</p>
+      </div>
+    }
+
+    @if (selectedUser) {
+
+      <!-- User Header -->
+      <div class="user-header">
+        <div class="user-header-left">
+          <div class="user-avatar-lg">{{ selectedUser.username.slice(0,2) }}</div>
+          <div>
+            <h2 class="page-title">{{ selectedUser.username }}</h2>
+            <p class="user-email">{{ selectedUser.email || '—' }}</p>
+          </div>
+        </div>
+        <div class="user-header-actions">
+          <span class="role-badge" [class.admin-role]="selectedUser.role === 'ADMIN'">
+            {{ selectedUser.role }}
+          </span>
+          <button class="btn-danger" (click)="onDeleteUser(selectedUser.id)">Delete User</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <span class="stat-label">Total tasks</span>
+          <span class="stat-value">{{ userTasks.length }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Completed</span>
+          <span class="stat-value">{{ completedCount() }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Pending</span>
+          <<span class="stat-value">{{ completedCount() }}</span>
+        </div>
+      </div>
+
+      <!-- Tasks -->
+      <div class="section-title">Tasks</div>
+
+      <div class="task-list">
+        @for (task of userTasks; track task.id) {
+
+          @if (editingTask?.id === task.id) {
+            <div class="edit-panel">
+              <input class="input-field" [(ngModel)]="editTitle" name="editTitle" placeholder="Title"/>
+              <input class="input-field" [(ngModel)]="editDescription" name="editDescription" placeholder="Description"/>
+              <div class="edit-actions">
+                <button class="btn-save" (click)="onSaveEdit()">Save</button>
+                <button class="btn-cancel" (click)="onCancelEdit()">Cancel</button>
+              </div>
+            </div>
+          } @else {
+            <div class="task-card" [class.completed]="task.is_completed">
+              <div class="task-card-left">
+                <div class="task-status-dot" [class.done]="task.is_completed"></div>
+                <div class="task-info">
+                  <h3 class="task-title">{{ task.title }}</h3>
+                  <p class="task-desc">{{ task.description || '—' }}</p>
+                </div>
+              </div>
+              <div class="task-card-actions">
+                <button class="btn-action btn-edit" (click)="onEditTask(task)">Edit</button>
+                <button class="btn-action btn-delete" (click)="onDeleteTask(task.id)">Delete</button>
+              </div>
+            </div>
+          }
+
+        }
+
+        @if (userTasks.length === 0) {
+          <div class="empty-state">
+            <span class="empty-icon">◎</span>
+            <p>No tasks for this user.</p>
+          </div>
+        }
+      </div>
+
+    }
+
+  </main>
+
+</div>

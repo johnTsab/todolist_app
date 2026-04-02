@@ -1,0 +1,49 @@
+<div class="logs-page">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <rect x="1" y="1" width="26" height="26" rx="5" stroke="#e8d5a3" stroke-width="1.5"/>
+        <polyline points="7,15 12,20 21,9" stroke="#e8d5a3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <h1>TaskFlow</h1>
+    </div>
+
+    <div class="sidebar-user">{{ username || username}}</div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item" (click)="router.navigate(['/tasks'])">My Tasks</button>
+      <button class="nav-item active">My Activity</button>
+       @if(isAdmin){
+        <button class="nav-item" (click)="router.navigate(['/admin'])">Admin Panel</button>
+      }
+    </nav>
+
+    <div class="sidebar-bottom">
+      <button class="btn-logout" (click)="router.navigate(['/login'])">← Logout</button>
+    </div>
+  </aside>
+
+  <main class="logs-main">
+    <h2 class="page-title">My Activity</h2>
+    <div class="logs-list">
+        @for(log of logs; track log.id){
+             <div class="log-item">
+          <div class="log-dot"></div>
+          <div class="log-info">
+            <span class="log-action">{{ log.action }}</span>
+            <span class="log-date">{{ log.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <span class="log-type">{{ log.activity_type }}</span>
+        </div>
+        }
+         @if (logs.length === 0) {
+        <div class="empty-state">
+          <span class="empty-icon">◎</span>
+          <p>No activity yet.</p>
+        </div>
+      }
+    </div>
+  </main>
+
+</div>
