@@ -1,13 +1,13 @@
 import { Injectable,inject } from '@angular/core';
 import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { authInterceptor } from '../interceptors/auth-interceptor';
-
+import { environment } from '../../environments/environment';
 @Injectable({
   providedIn: 'root',
 })
 
 export class Task {
-  private apiUrl='https://todolist-app-h7no.onrender.com/api';
+  private apiUrl= environment.apiUrl;
   private http = inject(HttpClient);
 
  
