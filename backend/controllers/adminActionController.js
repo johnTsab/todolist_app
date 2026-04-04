@@ -23,6 +23,7 @@ const deleteUser = async (req,res) => {
         await db.query('DELETE FROM tasks WHERE user_id=?',[userId]);
         const logAction = `ADMIN DELETED USER WITH USER ID NO. ${userId}`;
         await db.query("INSERT INTO logs (user_id,action,activity_type) VALUES (?,?,?)",[userId,logAction,"ADMIN"]);
+        res.status(204).json({message:'User deleted succesfully'});
     }catch(err){
         res.status(500).json({message:err.message});
     }
