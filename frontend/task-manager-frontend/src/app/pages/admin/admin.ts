@@ -1,3 +1,4 @@
+import { SocketService } from './../../services/socket';
 import { AuthService } from './../../services/auth';
 import { AdminService } from './../../services/admin';
 import { Component,inject, OnInit, ChangeDetectorRef, ViewEncapsulation } from '@angular/core';
@@ -24,6 +25,7 @@ export class Admin implements OnInit {
   editingTask: any = null;
   editTitle='';
   editDescription = '';
+  notification = '';
 
   expandedTaskId: number | null = null;
 subtasksMap: { [taskId: number]: any[] } = {};
@@ -35,6 +37,7 @@ editingSubtask: { taskId: number, subtaskId: number, title: string, description:
   private TaskService = inject(Task);
   router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private SocketService = inject(SocketService);
 
   ngOnInit(){
     const token = localStorage.getItem('accessToken');
@@ -42,6 +45,25 @@ editingSubtask: { taskId: number, subtaskId: number, title: string, description:
       const decoded = JSON.parse(atob(token.split('.')[1]));
       this.username = decoded.username;
       this.isAdmin = decoded.role === "ADMIN";
+      this.SocketService.connect(decoded.userId);
+
+      this.SocketService.on('admin_refresh',()=>{
+        this.loadUsers();
+        if(this.selectedUser){
+          this.loadUserTasks(this.selectedUser.id);
+        }
+        if(this.expandedTaskId){
+          this.loadSubtasksOfTask(this.expandedTaskId);
+        }
+        this.cdr.detectChanges();
+      })
+
+      this.SocketService.on('notification',(data)=>{
+        this.notification = data.message; 
+        this.cdr.detectChanges();
+         setTimeout(() => { this.notification = ''; this.cdr.detectChanges(); }, 10000);
+
+      })
     }
     if(!this.isAdmin){
       this.router.navigate(["/tasks"]);

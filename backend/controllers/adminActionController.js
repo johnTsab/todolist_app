@@ -18,7 +18,7 @@ const deleteUser = async (req,res) => {
     const adminId = req.user.userId;
     try{
         const userId =  Number(req.params.userid);
-        const [users] = await db.query('SELECT username FROM users WHERE id=?'[userId]);
+        const [users] = await db.query('SELECT username FROM users WHERE id=?',[userId]);
         username = users[0];
         const [resultU] = await db.query('DELETE FROM users WHERE id=?',[userId]);
         if(resultU.affectedRows===0)return res.sendStatus(404),json({message:'User not found'});
@@ -52,6 +52,7 @@ const getTasksOfUser = async(req, res) => {
 
 //update a users task
 const updateTaskofUser = async(req,res) => {
+    const io = req.app.get('io');
      const {newtitle , newdescription} = req.body;
         const userId = Number(req.params.userid);
         const taskId = Number(req.params.taskid);
@@ -67,6 +68,17 @@ const updateTaskofUser = async(req,res) => {
       "INSERT INTO logs (user_id,action,activity_type) VALUES (?,?,?)",
       [adminId, logAction, "CRUD"],
     );
+
+    io.to(`user_${userId}`).emit('notification', {
+      message: `Your task "${taskInfo}" was edited by an admin`,
+      type: 'info'
+    });
+
+     io.to(`user_${req.user.userId}`).emit('notification', {
+      message: `Task "${taskInfo}" of user ${userId} was edited`,
+      type: 'info'
+    });
+
     return res.status(204).json({ message: 'Task modified successfully' });
     }catch(error){
         res.status(500).json({message:error.message});
@@ -75,6 +87,7 @@ const updateTaskofUser = async(req,res) => {
 
 //delete a users task 
 const deleteTaskofUser = async(req,res) => {
+  const io = req.app.get('io');
     const adminId = req.user.userId;
     const userId = Number(req.params.userid);
     const taskId = req.params.taskid;
@@ -84,13 +97,24 @@ const deleteTaskofUser = async(req,res) => {
         const taskInfo = rows[0].title;
         const [result] = await db.query('DELETE FROM tasks WHERE id=? AND user_id=?',[taskId,userId]);
         if(result.affectedRows===0) return res.status(404).json({message:'Task not found'});
-        const [users] = await db.query('SELECT username FROM users WHERE id=?'[userId]);
+        const [users] = await db.query('SELECT username FROM users WHERE id=?',[userId]);
         username = users[0];
         const logAction = `ADMIN DELETED TASK: ${taskInfo} FROM USER: ${username}`;
         await db.query(
               "INSERT INTO logs (user_id,action,activity_type) VALUES (?,?,?)",
               [adminId, logAction, "CRUD"],
             );
+
+            io.to(`user_${userId}`).emit('notification', {
+      message: `Your task "${taskInfo}" was deleted by an admin`,
+      type: 'warning'
+    });
+    io.to(`user_${req.user.userId}`).emit('notification', {
+      message: `Task "${taskInfo}" of user ${userId} was deleted`,
+      type: 'info'
+    });
+
+
         return res.status(200).json({message:'Task deleted succesfully'});
     }catch(error){
         res.status(500).json({ message: error.message });
@@ -103,7 +127,7 @@ const toggleCompletionadmin = async (req,res)=>{
     const userId = Number(req.params.userid);
     const taskId = req.params.taskid;
     try{
-        const [rows] = await db.query('SELECT ** FROM tasks WHERE id=? AND user_id=?',[taskId,userId]);
+        const [rows] = await db.query('SELECT * FROM tasks WHERE id=? AND user_id=?',[taskId,userId]);
         if(rows.length===0)return res.status(404).json({message:"Task not found"});
         const task = rows[0];
         const newStatus = task.is_completed?0:1;
@@ -135,6 +159,8 @@ const getSubtasksofUser = async(req, res) => {
 
 //update subtasks 
 const updateSubtaskofUser = async(req, res) => {
+  const io = req.app.get('io');
+  const userId = Number(req.params.userid);
   const subtaskId = Number(req.params.subtaskid);
   const adminId = req.user.userId;
   const { newtitle, newdescription } = req.body;
@@ -154,6 +180,15 @@ const updateSubtaskofUser = async(req, res) => {
       "INSERT INTO logs (user_id,action,activity_type) VALUES (?,?,?)",
       [adminId, logAction, "ADMIN"]
     );
+    io.to(`user_${userId}`).emit('notification', {
+      message: `Your subtask "${subtask.title}" was edited by an admin`,
+      type: 'info'
+    });
+    io.to(`user_${process.env.ADMIN_USER_ID}`).emit('notification', {
+      message: `Subtask "${subtask.title}" of user ${userId} was edited`,
+      type: 'info'
+    });
+
     return res.status(200).json({ message: "Subtask updated successfully" });
   } catch(error) {
     res.status(500).json({ message: error.message });
@@ -161,6 +196,8 @@ const updateSubtaskofUser = async(req, res) => {
 }
 //delete subtasks
 const deleteSubtaskofUser = async(req, res) => {
+  const io = req.app.get('io');
+  const userId = Number(req.params.userid);
   const subtaskId = Number(req.params.subtaskid);
   const adminId = req.user.userId;
   try {
@@ -176,8 +213,19 @@ const deleteSubtaskofUser = async(req, res) => {
       "INSERT INTO logs (user_id,action,activity_type) VALUES (?,?,?)",
       [adminId, logAction, "ADMIN"]
     );
+
+      io.to(`user_${userId}`).emit('notification', {
+      message: `Your subtask "${subtaskTitle}" was deleted by an admin`,
+      type: 'warning'
+    });
+    io.to(`user_${req.user.userId}`).emit('notification', {
+      message: `Subtask "${subtaskTitle}" of user ${userId} was deleted`,
+      type: 'info'
+    });
+
     return res.status(200).json({ message: "Subtask deleted successfully" });
   } catch(error) {
+    console.error(error)
     res.status(500).json({ message: error.message });
   }
 }

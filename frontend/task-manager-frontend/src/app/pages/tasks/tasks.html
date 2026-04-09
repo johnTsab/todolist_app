@@ -32,6 +32,13 @@
   <!-- Main -->
   <main class="tasks-main">
 
+
+  @if (notification) {
+    <div class="notification-toast">
+      {{ notification }}
+    </div>
+  }
+
     <h2 class="page-title">My Tasks</h2>
 
     <!-- Add Task -->

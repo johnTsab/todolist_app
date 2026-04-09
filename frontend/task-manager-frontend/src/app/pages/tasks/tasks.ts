@@ -1,3 +1,4 @@
+import { SocketService } from './../../services/socket';
 import { Component, inject, OnInit, ChangeDetectorRef,ViewEncapsulation } from '@angular/core';
 import { Task } from '../../services/task';
 import { CommonModule } from '@angular/common';
@@ -25,11 +26,13 @@ export class Tasks implements OnInit {
   subtasks: any[]=[];
   newSubtaskTitle='';
   newSubTaskDescription='';
+  notification = ' ';
 
   private taskService = inject(Task);
   router = inject(Router);
 private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef); 
+  private SocketService = inject(SocketService);
   
 
   ngOnInit() {
@@ -38,9 +41,23 @@ private authService = inject(AuthService);
       const decoded = JSON.parse(atob(token.split('.')[1]));
       this.username = decoded.username;
       this.isAdmin = decoded.role === "ADMIN";
+    this.SocketService.connect(decoded.userId);
+console.log('Connecting socket with userId:', decoded.id);
+
+this.SocketService.on('notification', (data) => {
+  console.log('Notification received!', data);
+  this.loadTasks();
+  if(this.selectedTask){
+    this.loadSubtasks(this.selectedTask.id);
+  }
+  this.cdr.detectChanges();
+  this.notification = data.message;
+  setTimeout(() => { this.notification = ''; this.cdr.detectChanges(); }, 10000);
+});
     }
     this.loadTasks();
   }
+
 
   loadTasks() {
     this.taskService.getTasks().subscribe({

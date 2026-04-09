@@ -20,6 +20,7 @@ const getTasks = async (req, res) => {
 };
 
 const addTask = async (req, res) => {
+  const io = req.app.get('io');
   try {
     const userId = req.user.userId;
     const { title, description } = req.body;
@@ -41,6 +42,13 @@ const addTask = async (req, res) => {
       "INSERT INTO logs (user_id,action,activity_type) VALUES (?,?,?)",
       [userId, logAction, "CRUD"],
     );
+    io.to(`user_${req.user.userId}`).emit('notification', {
+  message: `Task "${taskInfo}" created successfully`,
+  type: 'success'
+});
+io.to(`user_${process.env.ADMIN_USER_ID}`).emit('admin_refresh', {
+  message: `User ${req.user.userId} added a new task`
+});
     return res
       .status(201)
       .json({ message: "Task created", taskId: result.insertId });
@@ -51,6 +59,7 @@ const addTask = async (req, res) => {
 };
 
 const updateTask = async (req, res) => {
+  const io = req.app.get('io');
   const {newtitle , newdescription} = req.body;
     const id = Number(req.params.id);
   try{
@@ -65,6 +74,13 @@ const updateTask = async (req, res) => {
       "INSERT INTO logs (user_id,action,activity_type) VALUES (?,?,?)",
       [userId, logAction, "CRUD"],
     );
+        io.to(`user_${req.user.userId}`).emit('notification', {
+  message: `Task "${taskInfo}" updated successfully`,
+  type: 'success'
+});
+io.to(`user_${process.env.ADMIN_USER_ID}`).emit('admin_refresh', {
+  message: `User ${req.user.userId} updated a task`
+});
     return res.status(204).json({message:'Task modified succesfully'});
   }catch(error){
     res.status(500).json({message:error.message});
@@ -72,6 +88,7 @@ const updateTask = async (req, res) => {
 };
 
 const deleteTask = async (req, res) => {
+  const io = req.app.get('io');
   const id = Number(req.params.id);
   const userId = req.user.userId;
   try{
@@ -87,6 +104,13 @@ const deleteTask = async (req, res) => {
       "INSERT INTO logs (user_id,action,activity_type) VALUES (?,?,?)",
       [userId, logAction, "CRUD"],
     );
+        io.to(`user_${req.user.userId}`).emit('notification', {
+  message: `Task "${taskInfo}" deleted successfully`,
+  type: 'success'
+});
+io.to(`user_${process.env.ADMIN_USER_ID}`).emit('admin_refresh', {
+  message: `User ${req.user.userId} deleted a task`
+});
     return res.status(204).json({message:'Task deleted succesfully'});
   }catch (error) {
     res.status(500).json({ message: error.message });
@@ -94,6 +118,7 @@ const deleteTask = async (req, res) => {
 };
 
 const toggleCompletion = async (req,res)=>{
+  const io = req.app.get('io');
   const id = Number(req.params.id);
   const userId = req.user.userId;
   try{
@@ -103,11 +128,15 @@ const toggleCompletion = async (req,res)=>{
     if(task.user_id!==userId)return res.status(403).json({message:"Forbidden"});
     const newStatus = task.is_completed?0:1;
     await db.query("UPDATE tasks SET is_completed=? WHERE id=?",[newStatus,id]);
-    const logAction = `USER ${newStatus ? 'COMPLETED' : 'UNCOMPLETED'} TASK: ${task.title}`;
+    const logAction = `USER ${newStatus ? 'COMPLETED' : 'UNRESOLVED'} TASK: ${task.title}`;
     await db.query(
       "INSERT INTO logs (user_id,action,activity_type) VALUES (?,?,?)",
       [userId, logAction, "CRUD"],
     );
+        io.to(`user_${req.user.userId}`).emit('notification', {
+  message: `Task "${task.title}" ${newStatus ? 'completed' : 'unresolved'} `,
+  type: 'success'
+});
     res.status(200).json({is_completed:newStatus});
 
   }catch(error){
@@ -116,6 +145,7 @@ const toggleCompletion = async (req,res)=>{
 }
 
 const getSubtasks = async(req,res) => {
+  const io = req.app.get('io');
    try {
     const userId = req.user.userId;
     const taskId = Number(req.params.id);
@@ -134,6 +164,7 @@ const getSubtasks = async(req,res) => {
 }
 
 const addSubtask = async (req,res) => {
+  const io = req.app.get('io');
   try{
     const userId = req.user.userId;
     const {title,description} = req.body;
@@ -152,9 +183,14 @@ const addSubtask = async (req,res) => {
       "INSERT INTO logs (user_id,action,activity_type) VALUES (?,?,?)",
       [userId, logAction, "CRUD"],
     );
+        io.to(`user_${req.user.userId}`).emit('notification', {
+  message: `Subtask "${taskInfo}" created successfully`,
+  type: 'success'
+});
+io.to(`user_${process.env.ADMIN_USER_ID}`).emit('admin_refresh', {
+  message: `User ${req.user.userId} added a subtask`
+});
      res.status(201).json({ message: "Subtask added", subtaskId: result.insertId }); 
-
-  
   }catch(error){
     console.error(error);
     res.status(500).json({ message: err.message });
@@ -162,6 +198,7 @@ const addSubtask = async (req,res) => {
 }
 
 const deleteSubtask = async (req,res) => {
+  const io = req.app.get('io');
   try{
    const subtaskId = Number(req.params.subtaskId);
    const userId = req.user.userId;
@@ -186,15 +223,23 @@ const deleteSubtask = async (req,res) => {
 
     const logAction =`USER DELETED SUBTASK: ${subtask.title}`;
     await db.query("INSERT INTO logs (user_id,action,activity_type) VALUES (?,?,?)",[userId,logAction,"CRUD"]);
+        io.to(`user_${req.user.userId}`).emit('notification', {
+  message: `Subtask "${subtask.title}" deleted successfully`,
+  type: 'success'
+});
+io.to(`user_${process.env.ADMIN_USER_ID}`).emit('admin_refresh', {
+  message: `User ${req.user.userId} deleted a subtask`
+});
     res.status(204).json({message:"Subtask deleted succesfuly"});
   
   }catch(error){
-    console.error(err);
-    res.status(500).json({ message: err.message });
+    console.error(error);
+    res.status(500).json({ message: error.message });
   }
 }
 
 const updateSubtask = async(req,res) => {
+  const io = req.app.get('io');
   try{
     const subtaskId= Number(req.params.subtaskId);
     const userId = req.user.userId;
@@ -210,6 +255,14 @@ const updateSubtask = async(req,res) => {
      if(result.affectedRows===0)return res.sendStatus(404).json({message:'Task not found'});
      const logAction = `USER MODIFIED TASK: ${taskInfo}`;
      await db.query("INSERT INTO logs (user_id,action,activity_type) VALUES (?,?,?)",[userId,logAction,"CRUD"]);
+         io.to(`user_${req.user.userId}`).emit('notification', {
+  message: `Subtask "${taskInfo}" updated successfully`,
+  type: 'success'
+});
+io.to(`user_${process.env.ADMIN_USER_ID}`).emit('admin_refresh', {
+  message: `User ${req.user.userId} updated a subtask`
+});
+
      return res.sendStatus(204).json({message:'Task modified succesfully'});
   }catch(error){
     res.status(500).json({message:error.message});
@@ -217,6 +270,7 @@ const updateSubtask = async(req,res) => {
 }
 
 const toggleSubtaskCompletion = async (req,res)=>{
+  const io = req.app.get('io');
   const id = Number(req.params.subtaskId);
   const userId = req.user.userId;
   try{
@@ -231,6 +285,10 @@ const toggleSubtaskCompletion = async (req,res)=>{
       "INSERT INTO logs (user_id,action,activity_type) VALUES (?,?,?)",
       [userId, logAction, "CRUD"],
     );
+     io.to(`user_${req.user.userId}`).emit('notification', {
+  message: `Subtask "${subtask.title}" ${newStatus ? 'completed' : 'unresolved'} `,
+  type: 'success'
+});
     res.status(200).json({is_completed:newStatus});
 
   }catch(error){

@@ -42,7 +42,7 @@ deleteSubtaskOfUser(userId: number, taskId: number, subtaskId: number) {
 }
 
 updateSubtaskOfUser(userId: number, taskId: number, subtaskId: number, title:string, description:string) {
-  return this.http.post(`${this.apiUrl}/admin/users/${userId}/tasks/${taskId}/subtasks/${subtaskId}`, {newTitle:title,newdescription:description});
+  return this.http.post(`${this.apiUrl}/admin/users/${userId}/tasks/${taskId}/subtasks/${subtaskId}`, {newtitle:title,newdescription:description});
 }
 
 }

@@ -506,3 +506,17 @@
   from { transform: translateX(100%); }
   to   { transform: translateX(0); }
 }
+
+.notification-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--accent);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.875rem;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}

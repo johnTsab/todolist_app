@@ -38,8 +38,8 @@ router.delete("/admin/users/:userid/tasks/:taskid/subtasks/:subtaskid", verifyJW
 
 
 //auth routes
-router.post("/signup",authLimiter, registerUser); //register
-router.post("/login",authLimiter, loginUser);  //login
+router.post("/signup", registerUser); //register
+router.post("/login", loginUser);  //login
 router.get("/refresh", UserrefreshToken);  //refresh token
 router.post("/logout",logOut);  //logout user
 
