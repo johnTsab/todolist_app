@@ -26,7 +26,7 @@ export class Tasks implements OnInit {
   subtasks: any[]=[];
   newSubtaskTitle='';
   newSubTaskDescription='';
-  notification = ' ';
+  notification = '';
 
   private taskService = inject(Task);
   router = inject(Router);

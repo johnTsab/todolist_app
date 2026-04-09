@@ -1,21 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,300&display=swap');
 
 :root {
- 
-  --sidebar-bg: #5e7a5c;   /* ← πιο σκούρο από #96a78d */
+  --sidebar-bg: #5e7a5c;
   --sidebar-border: #4a6349;
-  --surface-2: #c5d9be;    /* ← πιο σκούρο από #d9e9cf */
-  --border: #8aac88;       /* ← πιο σκούρο από #b6ceb4 */
-  --text: #1e2b1f;         /* ← πιο σκούρο από #2d3d2e */
+  --surface-2: #c5d9be;
+  --border: #8aac88;
+  --text: #1e2b1f;
   --text-muted: #5a7a58;
   --text-light: #6b8c69;
-  --accent: #4a6349;       /* ← πιο σκούρο από #7a9478 */
+  --accent: #4a6349;
   --accent-hover: #3a5039;
   --accent-dim: #c5d9be;
-  --left-bg: #4a6349;      /* ← για login/register left panel */
+  --left-bg: #4a6349;
   --left-border: #3a5039;
   --danger: #a93226;
   --danger-dim: #f9e8e8;
+  --surface: #ffffff;
+  --bg: #f0f0f0;
   --radius: 6px;
   --mono: 'DM Mono', monospace;
   --serif: 'Fraunces', Georgia, serif;
@@ -42,6 +43,7 @@
   left: 0;
   height: 100vh;
   gap: 8px;
+  z-index: 10;
 }
 
 .sidebar-logo {
@@ -120,12 +122,21 @@
   color: #ffffff;
 }
 
+/* ── Content Area (main + panel side by side) ── */
+.content-area {
+  display: flex;
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  min-height: 100vh;
+  align-items: stretch; 
+}
+
+
 /* ── Main Content ── */
 .tasks-main {
-  margin-left: var(--sidebar-width);
   flex: 1;
   padding: 48px 56px;
-  max-width: 860px;
+  min-width: 0;
 }
 
 .page-title {
@@ -352,28 +363,20 @@
 }
 
 /* ── Subtasks Panel ── */
-.subtasks-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 10;
-  background: transparent;
-}
-
 .subtasks-panel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 340px;
-  height: 100vh;
+  width: 320px;
+  flex-shrink: 0;
   background: var(--surface);
   border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  z-index: 11;
+  position: sticky;
+  top: 0;
+  max-height: 100vh;
+  overflow-y: auto;
   animation: slideIn 0.2s ease;
+  align-self: stretch; 
 }
 
 .panel-header {
@@ -435,7 +438,10 @@
 
 .subtask-item:hover { background: var(--surface-2); }
 .subtask-item:hover .btn-delete { opacity: 1; }
-.subtask-item.completed .subtask-title { text-decoration: line-through; color: var(--text-muted); }
+.subtask-item.completed .subtask-title {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
 
 .subtask-info {
   display: flex;
@@ -469,12 +475,6 @@
   gap: 8px;
 }
 
-.panel-footer-inputs {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
 .panel-footer .btn-add { width: 100%; }
 
 /* ── Empty State ── */
@@ -490,11 +490,20 @@
 .empty-icon { font-size: 28px; opacity: 0.35; }
 .empty-state p { font-size: 13px; }
 
-/* ── Error ── */
-.error-message {
-  font-size: 12px;
-  color: var(--danger);
-  text-align: center;
+/* ── Notification Toast ── */
+.notification-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--accent);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-family: var(--mono);
+  font-size: 0.875rem;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  animation: fadeIn 0.2s ease;
 }
 
 @keyframes fadeIn {
@@ -505,18 +514,4 @@
 @keyframes slideIn {
   from { transform: translateX(100%); }
   to   { transform: translateX(0); }
-}
-
-.notification-toast {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  background: var(--accent);
-  color: white;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.875rem;
-  z-index: 1000;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
