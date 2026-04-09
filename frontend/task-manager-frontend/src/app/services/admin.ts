@@ -41,8 +41,8 @@ deleteSubtaskOfUser(userId: number, taskId: number, subtaskId: number) {
   return this.http.delete(`${this.apiUrl}/admin/users/${userId}/tasks/${taskId}/subtasks/${subtaskId}`);
 }
 
-updateSubtaskOfUser(userId: number, taskId: number, subtaskId: number, data: any) {
-  return this.http.post(`${this.apiUrl}/admin/users/${userId}/tasks/${taskId}/subtasks/${subtaskId}`, data);
+updateSubtaskOfUser(userId: number, taskId: number, subtaskId: number, title:string, description:string) {
+  return this.http.post(`${this.apiUrl}/admin/users/${userId}/tasks/${taskId}/subtasks/${subtaskId}`, {newTitle:title,newdescription:description});
 }
 
 }

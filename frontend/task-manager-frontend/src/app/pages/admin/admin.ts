@@ -28,7 +28,7 @@ export class Admin implements OnInit {
   expandedTaskId: number | null = null;
 subtasksMap: { [taskId: number]: any[] } = {};
 
-editingSubtask: { taskId: number, subtaskId: number, title: string } | null = null;
+editingSubtask: { taskId: number, subtaskId: number, title: string, description:string } | null = null;
 
   private AdminService = inject(AdminService)
   private AuthService = inject(AuthService);
@@ -157,7 +157,7 @@ onDeleteSubtaskOfUser(taskId: number, subtaskId: number) {
 }
 
 onEditSubtask(taskId: number, subtask: any) {
-  this.editingSubtask = { taskId, subtaskId: subtask.id, title: subtask.title };
+  this.editingSubtask = { taskId, subtaskId: subtask.id, title: subtask.title, description:subtask.description };
 }
 
 onCancelSubtaskEdit() {
@@ -166,12 +166,13 @@ onCancelSubtaskEdit() {
 
 onSaveSubtaskEdit() {
   if (!this.editingSubtask) return;
-  const { taskId, subtaskId, title } = this.editingSubtask;
-  this.AdminService.updateSubtaskOfUser(this.selectedUser.id, taskId, subtaskId, { title }).subscribe({
+  const { taskId, subtaskId, title, description } = this.editingSubtask;
+  this.AdminService.updateSubtaskOfUser(this.selectedUser.id, taskId, subtaskId,title,description).subscribe({
     next: () => {
+      console.log(title);
       this.loadSubtasksOfTask(taskId);
       this.editingSubtask = null;
-      this.cdr.detectChanges();
+      //this.cdr.detectChanges();
     },
     error: (err) => console.error(err)
   });

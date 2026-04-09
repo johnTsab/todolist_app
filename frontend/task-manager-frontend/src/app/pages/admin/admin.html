@@ -138,6 +138,12 @@
                         [(ngModel)]="editingSubtask!.title"
                         placeholder="Subtask title"
                       />
+                       <input
+                        class="input-field input-field--subtask"
+                        [(ngModel)]="editingSubtask!.description"
+                        placeholder="Subtask description"
+                      />
+
                       <div class="edit-actions">
                         <button class="btn-save btn-save--sm" (click)="onSaveSubtaskEdit()">Save</button>
                         <button class="btn-cancel btn-cancel--sm" (click)="onCancelSubtaskEdit()">Cancel</button>

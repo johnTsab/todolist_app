@@ -176,7 +176,7 @@ private authService = inject(AuthService);
   this.taskService.updateTask(this.editingTask.id, this.editTitle, this.editDescription).subscribe({
     next: () => {
       this.loadTasks();
-      this.editingTask = null;  // "κλείσε" το edit panel
+      this.editingTask = null;  
     },
     error: (err) => console.error(err)
   });

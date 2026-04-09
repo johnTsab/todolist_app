@@ -76,7 +76,8 @@
           <p class="success-message">{{ successMessage }}</p>
         }
 
-        <button class="btn-submit" type="submit">Create account →</button>
+        <button class="btn-submit" type="submit" [disabled]="isLoading">
+          {{isLoading?'Redirecting...':'Create account →'}}</button>
       </form>
 
       <p class="register-footer">

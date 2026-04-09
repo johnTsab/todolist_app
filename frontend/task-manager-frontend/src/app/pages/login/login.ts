@@ -17,16 +17,17 @@ export class Login {
   private AuthService = inject(AuthService);
   router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  isLoading = false; 
 
   onSubmit(){
     this.errorMessage='';
+    this.isLoading = true;
    this.AuthService.login(this.username, this.password).subscribe({
       next: (response: any) => {
         console.log('Login επιτυχές!', response);
         localStorage.setItem('accessToken',response.accessToken);
         console.log('Token saved:', localStorage.getItem('accessToken'));
         this.router.navigate(['/tasks']);
-        
       },
       error: (err) => {
         if(err.status===401){ //unauthorized
@@ -34,6 +35,7 @@ export class Login {
         }else{
           this.errorMessage='Something went wrong. Try again';
         }
+        this.isLoading = false;
         this.cdr.detectChanges();
       }
     });

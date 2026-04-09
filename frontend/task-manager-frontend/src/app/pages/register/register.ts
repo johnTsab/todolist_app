@@ -20,11 +20,11 @@ export class Register {
   private AuthService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
   router = inject(Router);
+  isLoading= false;
 
   onSubmit() {
   this.errorMessage = '';
   this.successMessage = '';
-
   if (!this.username || !this.password || !this.email) {
     this.errorMessage = 'All fields are required';
     return;
@@ -33,8 +33,10 @@ export class Register {
     this.errorMessage = 'Passwords do not match';
     return; 
   }
+  this.isLoading = true;
   this.AuthService.register(this.username, this.password, this.confirmPassword, this.email).subscribe({
     next: (response: any) => {
+      this.isLoading = true;
       this.successMessage = 'Successfully registered! Redirecting...';
       this.cdr.detectChanges();
       setTimeout(() => {
@@ -49,6 +51,7 @@ export class Register {
   } else {
     this.errorMessage = 'Something went wrong. Try again.';
   }
+  this.isLoading=false;
   this.cdr.detectChanges();
 }
   });

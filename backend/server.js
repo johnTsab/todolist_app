@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const {globalLimiter} = require('./middleware/rateLimiter.js');
 app = express();
 
 app.use(cors({
@@ -19,6 +20,8 @@ app.use(express.urlencoded({
 
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
+
+app.use(globalLimiter);
 
 const Routes = require("./routes/todolistRoutes");
 app.use("/api",Routes);

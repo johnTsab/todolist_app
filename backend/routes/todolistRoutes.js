@@ -6,6 +6,7 @@ const registerUser = require("../controllers/registerController");
 const UserrefreshToken = require("../controllers/refreshController");
 const logOut = require ("../controllers/logoutController");
 const verifyJWT = require("../middleware/verifyJWT");
+const {authLimiter} = require("../middleware/rateLimiter");
 const verifyRole = require("../middleware/verifyRole");
 const {getAllUsers,deleteUser,getTasksOfUser,updateTaskofUser,deleteTaskofUser,toggleCompletionadmin, getSubtasksofUser, updateSubtaskofUser, deleteSubtaskofUser} = require("../controllers/adminActionController");
 
@@ -37,8 +38,8 @@ router.delete("/admin/users/:userid/tasks/:taskid/subtasks/:subtaskid", verifyJW
 
 
 //auth routes
-router.post("/signup",registerUser); //register
-router.post("/login",loginUser);  //login
+router.post("/signup",authLimiter, registerUser); //register
+router.post("/login",authLimiter, loginUser);  //login
 router.get("/refresh", UserrefreshToken);  //refresh token
 router.post("/logout",logOut);  //logout user
 
