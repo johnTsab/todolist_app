@@ -32,4 +32,17 @@ export class AdminService {
   deleteTaskofUser(userid:number,taskid:number){
     return this.http.delete(`${this.apiUrl}/admin/users/${userid}/tasks/${taskid}`,{});
   }
+
+getSubtasksOfUser(userId: number, taskId: number) {
+  return this.http.get(`${this.apiUrl}/admin/users/${userId}/tasks/${taskId}/subtasks`);
+}
+
+deleteSubtaskOfUser(userId: number, taskId: number, subtaskId: number) {
+  return this.http.delete(`${this.apiUrl}/admin/users/${userId}/tasks/${taskId}/subtasks/${subtaskId}`);
+}
+
+updateSubtaskOfUser(userId: number, taskId: number, subtaskId: number, data: any) {
+  return this.http.post(`${this.apiUrl}/admin/users/${userId}/tasks/${taskId}/subtasks/${subtaskId}`, data);
+}
+
 }

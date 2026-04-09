@@ -40,6 +40,10 @@ addsubTask(id:number,title:string,description:string){
   return this.http.post(`${this.apiUrl}/tasks/${id}/subtasks`,{title: title,description: description});
 }
 
+deleteSubTask(id:number,subid:number){
+  return this.http.delete(`${this.apiUrl}/tasks/${id}/subtasks/${subid}`,{});
+}
+
 toggleSubtask(id:number,subid:number){
  return this.http.patch(`${this.apiUrl}/tasks/${id}/subtasks/${subid}/complete`,{});
 }

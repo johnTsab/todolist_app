@@ -3,7 +3,7 @@ const cors = require('cors');
 app = express();
 
 app.use(cors({
-    origin: 'https://todolist-app-kappa-jet.vercel.app',
+    origin: ['https://todolist-app-kappa-jet.vercel.app','http://localhost:4200'],
   credentials: true            
 }));
 

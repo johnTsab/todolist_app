@@ -28,7 +28,7 @@
     <div class="users-title">All Users</div>
 
     @for (user of users; track user.id) {
-      <div class="user-item" 
+      <div class="user-item"
            [class.selected]="selectedUser?.id === user.id"
            (click)="onSelectUser(user)">
         <div class="user-avatar">{{ user.username.slice(0,2) }}</div>
@@ -85,7 +85,7 @@
         </div>
         <div class="stat-card">
           <span class="stat-label">Pending</span>
-          <<span class="stat-value">{{ completedCount() }}</span>
+          <span class="stat-value">{{ userTasks.length - completedCount() }}</span>
         </div>
       </div>
 
@@ -111,13 +111,60 @@
                 <div class="task-info">
                   <h3 class="task-title">{{ task.title }}</h3>
                   <p class="task-desc">{{ task.description || '—' }}</p>
+                  @if (task.subtaskCount != 0) {
+                    <span class="subtask-counter">↳ {{ task.subtaskCount }} subtask(s)</span>
+                  }
                 </div>
               </div>
               <div class="task-card-actions">
+                <button class="btn-action btn-subtasks" (click)="onToggleSubtasks(task)">
+                  {{ expandedTaskId === task.id ? '▴' : '▾' }} Subtasks
+                </button>
                 <button class="btn-action btn-edit" (click)="onEditTask(task)">Edit</button>
                 <button class="btn-action btn-delete" (click)="onDeleteTask(task.id)">Delete</button>
               </div>
             </div>
+
+            @if (expandedTaskId === task.id) {
+              <div class="subtasks-expanded">
+
+                @for (subtask of subtasksMap[task.id]; track subtask.id) {
+
+                  @if (editingSubtask?.subtaskId === subtask.id) {
+                    <!-- Subtask Edit Mode -->
+                    <div class="subtask-edit-panel">
+                      <input
+                        class="input-field input-field--subtask"
+                        [(ngModel)]="editingSubtask!.title"
+                        placeholder="Subtask title"
+                      />
+                      <div class="edit-actions">
+                        <button class="btn-save btn-save--sm" (click)="onSaveSubtaskEdit()">Save</button>
+                        <button class="btn-cancel btn-cancel--sm" (click)="onCancelSubtaskEdit()">Cancel</button>
+                      </div>
+                    </div>
+                  } @else {
+                    <!-- Subtask View Mode -->
+                    <div class="subtask-row" [class.completed]="subtask.is_completed">
+                      <div class="task-status-dot" [class.done]="subtask.is_completed"></div>
+                      <div class="subtask-info">
+                        <span class="subtask-title">{{ subtask.title }}</span>
+                        <span class="subtask-desc">{{ subtask.description || '—' }}</span>
+                      </div>
+                      <div class="subtask-actions">
+                        <button class="btn-action btn-edit" (click)="onEditSubtask(task.id, subtask)">Edit</button>
+                        <button class="btn-action btn-delete" (click)="onDeleteSubtaskOfUser(task.id, subtask.id)">Delete</button>
+                      </div>
+                    </div>
+                  }
+
+                }
+
+                @if (!subtasksMap[task.id]?.length) {
+                  <p class="subtasks-empty">No subtasks.</p>
+                }
+              </div>
+            }
           }
 
         }

@@ -25,6 +25,11 @@ export class Admin implements OnInit {
   editTitle='';
   editDescription = '';
 
+  expandedTaskId: number | null = null;
+subtasksMap: { [taskId: number]: any[] } = {};
+
+editingSubtask: { taskId: number, subtaskId: number, title: string } | null = null;
+
   private AdminService = inject(AdminService)
   private AuthService = inject(AuthService);
   private TaskService = inject(Task);
@@ -120,6 +125,57 @@ export class Admin implements OnInit {
       error: (err) => console.error(err)
     });
   }
+
+  onToggleSubtasks(task: any) {
+  if (this.expandedTaskId === task.id) {
+    this.expandedTaskId = null;
+  } else {
+    this.expandedTaskId = task.id;
+    this.loadSubtasksOfTask(task.id);
+  }
+  this.cdr.detectChanges();
+}
+
+loadSubtasksOfTask(taskId: number) {
+  this.AdminService.getSubtasksOfUser(this.selectedUser.id, taskId).subscribe({
+    next: (response: any) => {
+      this.subtasksMap[taskId] = [...response];
+      this.cdr.detectChanges();
+    },
+    error: (err) => console.error(err)
+  });
+}
+
+onDeleteSubtaskOfUser(taskId: number, subtaskId: number) {
+  this.AdminService.deleteSubtaskOfUser(this.selectedUser.id, taskId, subtaskId).subscribe({
+    next: () => {
+      this.loadSubtasksOfTask(taskId);
+      this.cdr.detectChanges();
+    },
+    error: (err) => console.error(err)
+  });
+}
+
+onEditSubtask(taskId: number, subtask: any) {
+  this.editingSubtask = { taskId, subtaskId: subtask.id, title: subtask.title };
+}
+
+onCancelSubtaskEdit() {
+  this.editingSubtask = null;
+}
+
+onSaveSubtaskEdit() {
+  if (!this.editingSubtask) return;
+  const { taskId, subtaskId, title } = this.editingSubtask;
+  this.AdminService.updateSubtaskOfUser(this.selectedUser.id, taskId, subtaskId, { title }).subscribe({
+    next: () => {
+      this.loadSubtasksOfTask(taskId);
+      this.editingSubtask = null;
+      this.cdr.detectChanges();
+    },
+    error: (err) => console.error(err)
+  });
+}
 
   
 

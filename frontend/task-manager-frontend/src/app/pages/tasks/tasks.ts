@@ -29,7 +29,7 @@ export class Tasks implements OnInit {
   private taskService = inject(Task);
   router = inject(Router);
 private authService = inject(AuthService);
-  private cdr = inject(ChangeDetectorRef); // ← ΝΕΟ
+  private cdr = inject(ChangeDetectorRef); 
   
 
   ngOnInit() {
@@ -45,8 +45,8 @@ private authService = inject(AuthService);
   loadTasks() {
     this.taskService.getTasks().subscribe({
       next: (response: any) => {
-         this.tasks = response.map((task: any) => ({...task})); //gia debugging
-        this.cdr.detectChanges(); // ← πες στην Angular να ανανεώσει το HTML
+         this.tasks = response; 
+        this.cdr.detectChanges(); 
       },
       error: (err) => {
         console.error('Σφάλμα', err);
@@ -100,7 +100,7 @@ private authService = inject(AuthService);
   loadSubtasks(taskId:number){
    this.taskService.getsubTasks(taskId).subscribe({
     next:(response:any)=>{
-      this.subtasks = [...response]; //gia debugging
+      this.subtasks = response;
       this.cdr.detectChanges();
     },
     error:(err)=>{
@@ -136,8 +136,16 @@ private authService = inject(AuthService);
   });
   }
 
-  onDeleteSubtask(id:number){
-    //TODO
+
+    onDeleteSubtask(id: number) {
+  this.taskService.deleteSubTask(this.selectedTask.id, id).subscribe({
+    next: () => {
+      this.loadSubtasks(this.selectedTask.id);
+      this.loadTasks();
+      this.cdr.detectChanges();
+    },
+    error: (err) => console.error(err)
+  });
   }
 
   onToggleCompleteSub(subtask:any){

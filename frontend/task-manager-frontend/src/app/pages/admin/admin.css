@@ -294,9 +294,7 @@
   transition: all 0.15s;
 }
 
-.btn-danger:hover {
-  background: var(--danger-dim);
-}
+.btn-danger:hover { background: var(--danger-dim); }
 
 /* ── Stats ── */
 .stats-row {
@@ -402,6 +400,9 @@
   font-size: 11px;
   color: var(--text-muted);
   margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── Task Actions ── */
@@ -425,13 +426,16 @@
   transition: all 0.12s;
 }
 
+.btn-subtasks { color: var(--text-light); border-color: var(--border); }
+.btn-subtasks:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
 .btn-edit { color: var(--text-light); border-color: var(--border); }
 .btn-edit:hover { color: var(--text); background: var(--surface-2); }
 
 .btn-delete { color: var(--text-muted); }
 .btn-delete:hover { background: var(--danger-dim); border-color: #f5c6c6; color: var(--danger); }
 
-/* ── Edit Panel ── */
+/* ── Edit Panel (task) ── */
 .edit-panel {
   display: flex;
   align-items: center;
@@ -494,6 +498,119 @@
 }
 
 .btn-cancel:hover { color: var(--text); }
+
+.subtask-counter {
+  font-size: 11px;
+  color: var(--accent);
+  margin-left: 8px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+/* ── Subtasks Expanded ── */
+.subtasks-expanded {
+  margin-left: 36px;
+  margin-bottom: 6px;
+  border-left: 2px solid var(--border);
+  padding-left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: fadeIn 0.15s ease;
+}
+
+.subtask-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: var(--radius);
+  transition: background 0.1s;
+}
+
+.subtask-row:hover { background: var(--surface); }
+.subtask-row:hover .subtask-actions { opacity: 1; }
+
+.subtask-row.completed .subtask-title {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.subtask-row .task-status-dot {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+}
+
+.subtask-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.subtask-title {
+  font-size: 12px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.subtask-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ── Subtask Actions ── */
+.subtask-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.subtask-actions .btn-action {
+  padding: 3px 8px;
+  font-size: 10px;
+}
+
+/* ── Subtask Edit Panel ── */
+.subtask-edit-panel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  animation: fadeIn 0.15s ease;
+}
+
+.input-field--subtask {
+  font-size: 12px;
+  padding: 5px 10px;
+  flex: 1;
+}
+
+.btn-save--sm {
+  font-size: 10px;
+  padding: 4px 10px;
+}
+
+.btn-cancel--sm {
+  font-size: 10px;
+  padding: 4px 10px;
+}
+
+.subtasks-empty {
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 6px 0;
+  font-style: italic;
+}
 
 /* ── Empty State ── */
 .empty-state {

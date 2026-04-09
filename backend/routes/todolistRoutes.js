@@ -7,7 +7,7 @@ const UserrefreshToken = require("../controllers/refreshController");
 const logOut = require ("../controllers/logoutController");
 const verifyJWT = require("../middleware/verifyJWT");
 const verifyRole = require("../middleware/verifyRole");
-const {getAllUsers,deleteUser,getTasksOfUser,updateTaskofUser,deleteTaskofUser} = require("../controllers/adminActionController");
+const {getAllUsers,deleteUser,getTasksOfUser,updateTaskofUser,deleteTaskofUser,toggleCompletionadmin, getSubtasksofUser, updateSubtaskofUser, deleteSubtaskofUser} = require("../controllers/adminActionController");
 
 
 //regular user routes
@@ -29,6 +29,11 @@ router.delete("/admin/users/:userid",verifyJWT,verifyRole(["ADMIN"]),deleteUser)
 router.get("/admin/users/:userid/tasks",verifyJWT,verifyRole(["ADMIN"]),getTasksOfUser); //returns a list with the tasks of a user
 router.post("/admin/users/:userid/tasks/:taskid",verifyJWT,verifyRole(["ADMIN"]),updateTaskofUser); //updates a specific task of a specific user
 router.delete("/admin/users/:userid/tasks/:taskid",verifyJWT,verifyRole(["ADMIN"]),deleteTaskofUser); //deletes a specific task of a specific user
+router.patch("/admin/users/:userid/tasks/:taskid/complete",verifyJWT,verifyRole(["ADMIN"]),toggleCompletionadmin);
+router.get("/admin/users/:userid/tasks/:taskid/subtasks", verifyJWT, verifyRole(["ADMIN"]), getSubtasksofUser);
+router.post("/admin/users/:userid/tasks/:taskid/subtasks/:subtaskid", verifyJWT, verifyRole(["ADMIN"]), updateSubtaskofUser);
+router.delete("/admin/users/:userid/tasks/:taskid/subtasks/:subtaskid", verifyJWT, verifyRole(["ADMIN"]), deleteSubtaskofUser);
+
 
 
 //auth routes
