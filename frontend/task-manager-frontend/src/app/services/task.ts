@@ -48,6 +48,10 @@ toggleSubtask(id:number,subid:number){
  return this.http.patch(`${this.apiUrl}/tasks/${id}/subtasks/${subid}/complete`,{});
 }
 
+  updateSubtask(id: number,subid:number, title: string, description: string) {
+  return this.http.post(`${this.apiUrl}/tasks/${id}`, { newtitle: title, newdescription: description });
+}
+
 getLogs(){
   return this.http.get(`${this.apiUrl}/logs`);
 }
