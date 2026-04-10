@@ -1,10 +1,12 @@
 const express = require("express");
 const db = require("../src/config/database");
 require("dotenv").config();
+const {sendEmail,templates} = require('../mailer');
 
 const getTasks = async (req, res) => {
   try {
     const userId = req.user.userId;
+    console.log("REQ.USER =", req.user);
     const [rows] = await db.query("SELECT * FROM tasks WHERE user_id = ?", [
       userId,
     ]);
@@ -34,6 +36,12 @@ const addTask = async (req, res) => {
       "INSERT INTO tasks (user_id, title,description) VALUES (?, ?, ?)",
       [userId, title, description || null],
     );
+    const [email] = await db.query('SELECT email FROM users WHERE id=?',[userId]);
+    const useremail = email?.[0]?.email;
+    if (!useremail) {
+  console.error("❌ No email found for user:", userId);
+  return res.status(404).json({ message: "User email not found" });
+}
 
     //log activity
     const taskInfo = title;
@@ -49,6 +57,12 @@ const addTask = async (req, res) => {
 io.to(`user_${process.env.ADMIN_USER_ID}`).emit('admin_refresh', {
   message: `User ${req.user.userId} added a new task`
 });
+console.log("DB RESULT:", email);
+console.log("USER ID:", userId);
+const {subject,html} = templates.taskCreated(req.user.username,title);
+const {subject: aSubj, html:aHtml} = templates.adminNotif('Task',req.user.username, title);
+await sendEmail(useremail,subject,html);
+await sendEmail (process.env.ADMIN_EMAIL,aSubj,aHtml);
     return res
       .status(201)
       .json({ message: "Task created", taskId: result.insertId });

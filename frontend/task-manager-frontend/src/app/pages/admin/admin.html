@@ -105,52 +105,52 @@
               </div>
             </div>
           } @else {
+
             <div class="task-card" [class.completed]="task.is_completed">
               <div class="task-card-left">
                 <div class="task-status-dot" [class.done]="task.is_completed"></div>
                 <div class="task-info">
                   <h3 class="task-title">{{ task.title }}</h3>
                   <p class="task-desc">{{ task.description || '—' }}</p>
-                  @if (task.subtaskCount != 0) {
-                    <span class="subtask-counter">↳ {{ task.subtaskCount }} subtask(s)</span>
-                  }
                 </div>
               </div>
               <div class="task-card-actions">
                 <button class="btn-action btn-subtasks" (click)="onToggleSubtasks(task)">
                   {{ expandedTaskId === task.id ? '▴' : '▾' }} Subtasks
+                  @if (task.subtaskCount > 0) {
+                    <span class="subtask-badge">{{ task.subtaskCount }}</span>
+                  }
                 </button>
                 <button class="btn-action btn-edit" (click)="onEditTask(task)">Edit</button>
                 <button class="btn-action btn-delete" (click)="onDeleteTask(task.id)">Delete</button>
               </div>
             </div>
 
+            <!-- Inline Subtasks Dropdown -->
             @if (expandedTaskId === task.id) {
               <div class="subtasks-expanded">
 
                 @for (subtask of subtasksMap[task.id]; track subtask.id) {
-
                   @if (editingSubtask?.subtaskId === subtask.id) {
-                    <!-- Subtask Edit Mode -->
                     <div class="subtask-edit-panel">
                       <input
-                        class="input-field input-field--subtask"
+                        class="input-field"
                         [(ngModel)]="editingSubtask!.title"
+                        name="subEditTitle"
                         placeholder="Subtask title"
                       />
-                       <input
-                        class="input-field input-field--subtask"
+                      <input
+                        class="input-field"
                         [(ngModel)]="editingSubtask!.description"
+                        name="subEditDesc"
                         placeholder="Subtask description"
                       />
-
                       <div class="edit-actions">
-                        <button class="btn-save btn-save--sm" (click)="onSaveSubtaskEdit()">Save</button>
-                        <button class="btn-cancel btn-cancel--sm" (click)="onCancelSubtaskEdit()">Cancel</button>
+                        <button class="btn-save" (click)="onSaveSubtaskEdit()">Save</button>
+                        <button class="btn-cancel" (click)="onCancelSubtaskEdit()">Cancel</button>
                       </div>
                     </div>
                   } @else {
-                    <!-- Subtask View Mode -->
                     <div class="subtask-row" [class.completed]="subtask.is_completed">
                       <div class="task-status-dot" [class.done]="subtask.is_completed"></div>
                       <div class="subtask-info">
@@ -163,16 +163,16 @@
                       </div>
                     </div>
                   }
-
                 }
 
                 @if (!subtasksMap[task.id]?.length) {
                   <p class="subtasks-empty">No subtasks.</p>
                 }
+
               </div>
             }
-          }
 
+          }
         }
 
         @if (userTasks.length === 0) {
@@ -186,5 +186,12 @@
     }
 
   </main>
+
+  <!-- Notification Toast -->
+  @if (notification && notification.trim()) {
+    <div class="notification-toast">
+      {{ notification }}
+    </div>
+  }
 
 </div>

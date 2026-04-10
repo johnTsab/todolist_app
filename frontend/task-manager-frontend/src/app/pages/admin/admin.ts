@@ -1,102 +1,102 @@
 import { SocketService } from './../../services/socket';
 import { AuthService } from './../../services/auth';
 import { AdminService } from './../../services/admin';
-import { Component,inject, OnInit, ChangeDetectorRef, ViewEncapsulation } from '@angular/core';
-import {Task} from '../../services/task';
+import { Component, inject, OnInit, ChangeDetectorRef, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {Router} from '@angular/router';
-
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-admin',
-  imports: [CommonModule,FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './admin.html',
   styleUrl: './admin.css',
   encapsulation: ViewEncapsulation.None
 })
 export class Admin implements OnInit {
-  users:any[] = [];
+  users: any[] = [];
   selectedUser: any = null;
   userTasks: any[] = [];
   username = '';
   isAdmin = false;
-
-  editingTask: any = null;
-  editTitle='';
-  editDescription = '';
   notification = '';
 
+  editingTask: any = null;
+  editTitle = '';
+  editDescription = '';
+
   expandedTaskId: number | null = null;
-subtasksMap: { [taskId: number]: any[] } = {};
+  subtasksMap: { [taskId: number]: any[] } = {};
+  editingSubtask: { taskId: number, subtaskId: number, title: string, description: string } | null = null;
 
-editingSubtask: { taskId: number, subtaskId: number, title: string, description:string } | null = null;
-
-  private AdminService = inject(AdminService)
+  private AdminService = inject(AdminService);
   private AuthService = inject(AuthService);
-  private TaskService = inject(Task);
   router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private SocketService = inject(SocketService);
 
-  ngOnInit(){
+  ngOnInit() {
     const token = localStorage.getItem('accessToken');
-    if(token){
+    if (token) {
       const decoded = JSON.parse(atob(token.split('.')[1]));
       this.username = decoded.username;
-      this.isAdmin = decoded.role === "ADMIN";
+      this.isAdmin = decoded.role === 'ADMIN';
       this.SocketService.connect(decoded.userId);
 
-      this.SocketService.on('admin_refresh',()=>{
+      this.SocketService.on('admin_refresh', () => {
         this.loadUsers();
-        if(this.selectedUser){
+        if (this.selectedUser) {
           this.loadUserTasks(this.selectedUser.id);
         }
-        if(this.expandedTaskId){
+        if (this.expandedTaskId) {
           this.loadSubtasksOfTask(this.expandedTaskId);
         }
         this.cdr.detectChanges();
-      })
+      });
 
-      this.SocketService.on('notification',(data)=>{
-        this.notification = data.message; 
+      this.SocketService.on('notification', (data) => {
+        this.notification = data.message;
         this.cdr.detectChanges();
-         setTimeout(() => { this.notification = ''; this.cdr.detectChanges(); }, 10000);
-
-      })
+        setTimeout(() => { this.notification = ''; this.cdr.detectChanges(); }, 4000);
+      });
     }
-    if(!this.isAdmin){
-      this.router.navigate(["/tasks"]);
+
+    if (!this.isAdmin) {
+      this.router.navigate(['/tasks']);
       return;
     }
     this.loadUsers();
   }
 
   completedCount() {
-  return this.userTasks.filter(t => t.is_completed).length;
-}
+    return this.userTasks.filter(t => t.is_completed).length;
+  }
 
-  loadUsers(){
+  loadUsers() {
     this.AdminService.getUsers().subscribe({
-      next:(response:any)=>{
+      next: (response: any) => {
         this.users = [...response];
         this.cdr.detectChanges();
       },
-      error:(err)=>{console.error(err)}
+      error: (err) => console.error(err)
     });
   }
 
-  onSelectUser(user:any){
+  onSelectUser(user: any) {
     this.selectedUser = user;
     this.editingTask = null;
+    this.expandedTaskId = null;
+    this.subtasksMap = {};
     this.loadUserTasks(user.id);
   }
 
-   onDeleteUser(userId: number) {
+  onDeleteUser(userId: number) {
     this.AdminService.deleteUser(userId).subscribe({
       next: () => {
         this.selectedUser = null;
         this.userTasks = [];
+        this.expandedTaskId = null;
+        this.subtasksMap = {};
         this.loadUsers();
         this.cdr.detectChanges();
       },
@@ -105,14 +105,14 @@ editingSubtask: { taskId: number, subtaskId: number, title: string, description:
   }
 
   loadUserTasks(userId: number) {
-  this.AdminService.getTasksofUser(userId).subscribe({
-    next: (response: any) => {
-      this.userTasks = [...response]; // ← userTasks όχι users
-      this.cdr.detectChanges();
-    },
-    error: (err) => console.error(err)
-  });
-}
+    this.AdminService.getTasksofUser(userId).subscribe({
+      next: (response: any) => {
+        this.userTasks = response.map((t: any) => ({ ...t }));
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error(err)
+    });
+  }
 
   onEditTask(task: any) {
     this.editingTask = task;
@@ -124,7 +124,7 @@ editingSubtask: { taskId: number, subtaskId: number, title: string, description:
   onSaveEdit() {
     if (!this.editingTask) return;
     this.AdminService.updateTaskofUser(this.selectedUser.id, this.editingTask.id, this.editTitle, this.editDescription).subscribe({
-      next: (response:any) => {
+      next: () => {
         this.loadUserTasks(this.selectedUser.id);
         this.editingTask = null;
         this.cdr.detectChanges();
@@ -135,12 +135,14 @@ editingSubtask: { taskId: number, subtaskId: number, title: string, description:
 
   onCancelEdit() {
     this.editingTask = null;
-    this.cdr.detectChanges();
   }
 
-   onDeleteTask(taskId: number) {
+  onDeleteTask(taskId: number) {
     this.AdminService.deleteTaskofUser(this.selectedUser.id, taskId).subscribe({
-      next: (response:any) => {
+      next: () => {
+        if (this.expandedTaskId === taskId) {
+          this.expandedTaskId = null;
+        }
         this.loadUserTasks(this.selectedUser.id);
         this.cdr.detectChanges();
       },
@@ -148,63 +150,59 @@ editingSubtask: { taskId: number, subtaskId: number, title: string, description:
     });
   }
 
+  // ── Inline Subtasks ──
+
   onToggleSubtasks(task: any) {
-  if (this.expandedTaskId === task.id) {
-    this.expandedTaskId = null;
-  } else {
-    this.expandedTaskId = task.id;
-    this.loadSubtasksOfTask(task.id);
+    if (this.expandedTaskId === task.id) {
+      this.expandedTaskId = null;
+    } else {
+      this.expandedTaskId = task.id;
+      this.loadSubtasksOfTask(task.id);
+    }
+    this.editingSubtask = null;
+    this.cdr.detectChanges();
   }
-  this.cdr.detectChanges();
-}
 
-loadSubtasksOfTask(taskId: number) {
-  this.AdminService.getSubtasksOfUser(this.selectedUser.id, taskId).subscribe({
-    next: (response: any) => {
-      this.subtasksMap[taskId] = [...response];
-      this.cdr.detectChanges();
-    },
-    error: (err) => console.error(err)
-  });
-}
+  loadSubtasksOfTask(taskId: number) {
+    this.AdminService.getSubtasksOfUser(this.selectedUser.id, taskId).subscribe({
+      next: (response: any) => {
+        this.subtasksMap[taskId] = [...response];
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error(err)
+    });
+  }
 
-onDeleteSubtaskOfUser(taskId: number, subtaskId: number) {
-  this.AdminService.deleteSubtaskOfUser(this.selectedUser.id, taskId, subtaskId).subscribe({
-    next: () => {
-      this.loadSubtasksOfTask(taskId);
-      this.cdr.detectChanges();
-    },
-    error: (err) => console.error(err)
-  });
-}
+  onDeleteSubtaskOfUser(taskId: number, subtaskId: number) {
+    this.AdminService.deleteSubtaskOfUser(this.selectedUser.id, taskId, subtaskId).subscribe({
+      next: () => {
+        this.loadSubtasksOfTask(taskId);
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error(err)
+    });
+  }
 
-onEditSubtask(taskId: number, subtask: any) {
-  this.editingSubtask = { taskId, subtaskId: subtask.id, title: subtask.title, description:subtask.description };
-}
+  onEditSubtask(taskId: number, subtask: any) {
+    this.editingSubtask = { taskId, subtaskId: subtask.id, title: subtask.title, description: subtask.description };
+    this.cdr.detectChanges();
+  }
 
-onCancelSubtaskEdit() {
-  this.editingSubtask = null;
-}
+  onCancelSubtaskEdit() {
+    this.editingSubtask = null;
+    this.cdr.detectChanges();
+  }
 
-onSaveSubtaskEdit() {
-  if (!this.editingSubtask) return;
-  const { taskId, subtaskId, title, description } = this.editingSubtask;
-  this.AdminService.updateSubtaskOfUser(this.selectedUser.id, taskId, subtaskId,title,description).subscribe({
-    next: () => {
-      console.log(title);
-      this.loadSubtasksOfTask(taskId);
-      this.editingSubtask = null;
-      //this.cdr.detectChanges();
-    },
-    error: (err) => console.error(err)
-  });
-}
-
-  
-
-
-
-
-
-
+  onSaveSubtaskEdit() {
+    if (!this.editingSubtask) return;
+    const { taskId, subtaskId, title, description } = this.editingSubtask;
+    this.AdminService.updateSubtaskOfUser(this.selectedUser.id, taskId, subtaskId, title, description).subscribe({
+      next: () => {
+        this.loadSubtasksOfTask(taskId);
+        this.editingSubtask = null;
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error(err)
+    });
+  }
 }

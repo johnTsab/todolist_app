@@ -426,7 +426,7 @@
   transition: all 0.12s;
 }
 
-.btn-subtasks { color: var(--text-light); border-color: var(--border); }
+.btn-subtasks { color: var(--text-light); border-color: var(--border); display: flex; align-items: center; gap: 5px; }
 .btn-subtasks:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
 
 .btn-edit { color: var(--text-light); border-color: var(--border); }
@@ -434,6 +434,20 @@
 
 .btn-delete { color: var(--text-muted); }
 .btn-delete:hover { background: var(--danger-dim); border-color: #f5c6c6; color: var(--danger); }
+
+.subtask-badge {
+  background: var(--accent);
+  color: white;
+  border-radius: 10px;
+  padding: 1px 6px;
+  font-size: 10px;
+  line-height: 1.4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+}
 
 /* ── Edit Panel (task) ── */
 .edit-panel {
@@ -577,41 +591,80 @@
   font-size: 10px;
 }
 
-/* ── Subtask Edit Panel ── */
-.subtask-edit-panel {
+/* ── Inline Subtasks Dropdown ── */
+.subtasks-expanded {
+  margin: 0 0 4px 38px;
+  border-left: 2px solid var(--border);
+  padding-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: fadeIn 0.15s ease;
+}
+
+.subtask-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   padding: 7px 10px;
+  border-radius: var(--radius);
+  transition: background 0.1s;
+}
+
+.subtask-row:hover { background: var(--surface); }
+.subtask-row:hover .subtask-actions { opacity: 1; }
+.subtask-row.completed .subtask-title {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.subtask-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.subtask-title { font-size: 13px; color: var(--text); }
+.subtask-desc { font-size: 11px; color: var(--text-muted); }
+
+.subtask-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.subtask-edit-panel {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
   background: var(--surface);
   border: 1px solid var(--accent);
   border-radius: var(--radius);
   animation: fadeIn 0.15s ease;
 }
 
-.input-field--subtask {
-  font-size: 12px;
-  padding: 5px 10px;
-  flex: 1;
-}
-
-.btn-save--sm {
-  font-size: 10px;
-  padding: 4px 10px;
-}
-
-.btn-cancel--sm {
-  font-size: 10px;
-  padding: 4px 10px;
-}
+.subtask-edit-panel .input-field { flex: 1; }
 
 .subtasks-empty {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
-  padding: 6px 0;
+  padding: 8px 10px;
   font-style: italic;
 }
 
+.subtask-add-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 8px 10px;
+  border-top: 1px dashed var(--border);
+  margin-top: 4px;
+}
 /* ── Empty State ── */
 .empty-state {
   display: flex;
