@@ -1,234 +1,316 @@
-const express = require("express");
 const db = require("../src/config/database");
 require("dotenv").config();
+const { sendEmail, templates } = require('../mailer');
 
-//get a list of the users (will be able to get a list of all the users and then proceed to select one of them )
-const getAllUsers = async (req,res) => {
-    try{
-        const [rows] = await db.query("SELECT * FROM  users");
-        res.json(rows);
-    }catch(err){
-        console.error(err);
-        res.status(500).json({message:"Server error"});
-    }
-}
+const getUserEmail = async (userId) => {
+  const [rows] = await db.query('SELECT email FROM users WHERE id = ?', [userId]);
+  return rows?.[0]?.email || null;
+};
 
-//delete a specific user (drop a user)
-const deleteUser = async (req,res) => {
-    const adminId = req.user.userId;
-    try{
-        const userId =  Number(req.params.userid);
-        const [users] = await db.query('SELECT username FROM users WHERE id=?',[userId]);
-        username = users[0];
-        const [resultU] = await db.query('DELETE FROM users WHERE id=?',[userId]);
-        if(resultU.affectedRows===0)return res.sendStatus(404),json({message:'User not found'});
-        //delete the users tasks and subtasks due to the cascade in the database
-        await db.query('DELETE FROM tasks WHERE user_id=?',[userId]);
-        const logAction = `ADMIN DELETED USER ${username}`;
-        await db.query("INSERT INTO logs (user_id,action,activity_type) VALUES (?,?,?)",[adminId,logAction,"ADMIN"]);
-        res.status(204).json({message:'User deleted succesfully'});
-    }catch(err){
-        res.status(500).json({message:err.message});
-    }
-}
+const getAllUsers = async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT * FROM users");
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
-
-//get tasks by user (get the full list of tasks of a user 
-const getTasksOfUser = async(req, res) => {
+const deleteUser = async (req, res) => {
+  const adminId = req.user.userId;
   const userId = Number(req.params.userid);
   try {
-    const [result] = await db.query("SELECT * FROM tasks WHERE user_id=?", [userId]);
-    for(let task of result){
-      const [subtaskCount] = await db.query("SELECT COUNT(*) as count FROM subtasks WHERE task_id=?",[task.id]);
+    const [users] = await db.query('SELECT username FROM users WHERE id = ?', [userId]);
+    if (users.length === 0) return res.status(404).json({ message: 'User not found' });
+    const username = users[0].username; 
+
+    const [result] = await db.query('DELETE FROM users WHERE id = ?', [userId]);
+    if (result.affectedRows === 0) return res.status(404).json({ message: 'User not found' });
+
+    await db.query(
+      "INSERT INTO logs (user_id, action, activity_type) VALUES (?, ?, ?)",
+      [adminId, `ADMIN DELETED USER: ${username}`, "ADMIN"]
+    );
+
+    res.status(204).json({ message: 'User deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+const getTasksOfUser = async (req, res) => {
+  const userId = Number(req.params.userid);
+  try {
+    // idx_tasks_user_id covers this query
+    const [result] = await db.query("SELECT * FROM tasks WHERE user_id = ?", [userId]);
+    for (let task of result) {
+      // idx_subtasks_task_id covers this query
+      const [subtaskCount] = await db.query(
+        "SELECT COUNT(*) as count FROM subtasks WHERE task_id = ?",
+        [task.id]
+      );
       task.subtaskCount = subtaskCount[0].count;
     }
     res.json(result);
-  } catch(error) {
-    console.error('ERROR:', error); 
+  } catch (error) {
+    console.error('ERROR:', error);
     res.status(500).json({ message: error.message });
   }
-}
+};
 
+const updateTaskofUser = async (req, res) => {
+  const io = req.app.get('io');
+  const adminId = req.user.userId;
+  const userId = Number(req.params.userid);
+  const taskId = Number(req.params.taskid);
+  const { newtitle, newdescription } = req.body;
+  try {
+    // idx_tasks_user_id 
+    const [tasres] = await db.query(
+      'SELECT * FROM tasks WHERE id = ? AND user_id = ?',
+      [taskId, userId]
+    );
+    if (tasres.length === 0) return res.status(404).json({ message: 'Task or user not found' });
+    const foundTask = tasres[0];
 
-//update a users task
-const updateTaskofUser = async(req,res) => {
-    const io = req.app.get('io');
-     const {newtitle , newdescription} = req.body;
-        const userId = Number(req.params.userid);
-        const taskId = Number(req.params.taskid);
-    try{
-        const [tasres] = await db.query('SELECT * FROM tasks WHERE id=? AND user_id=?',[taskId,userId]);
-        if(tasres.length ===0) return res.sendStatus(404).json({message: 'Task or user not found'});
-        const foundTask = tasres[0] ;
-    const taskInfo = tasres[0].title;
-    const adminId = req.user.userId;
-    await db.query('UPDATE tasks SET title=?, description=? WHERE id=? AND user_id=?',[newtitle || foundTask.title,newdescription || foundTask.description,taskId,userId]);
-    const logAction = `ADMIN MODIFIED TASK: ${taskInfo}`;
     await db.query(
-      "INSERT INTO logs (user_id,action,activity_type) VALUES (?,?,?)",
-      [adminId, logAction, "CRUD"],
+      'UPDATE tasks SET title = ?, description = ? WHERE id = ? AND user_id = ?',
+      [newtitle || foundTask.title, newdescription || foundTask.description, taskId, userId]
+    );
+
+    // idx_logs_user_id 
+    await db.query(
+      "INSERT INTO logs (user_id, action, activity_type) VALUES (?, ?, ?)",
+      [adminId, `ADMIN MODIFIED TASK: ${foundTask.title}`, "ADMIN"]
     );
 
     io.to(`user_${userId}`).emit('notification', {
-      message: `Your task "${taskInfo}" was edited by an admin`,
+      message: `Your task "${foundTask.title}" was edited by an admin`,
+      type: 'info'
+    });
+    io.to(`user_${adminId}`).emit('notification', {
+      message: `Task "${foundTask.title}" of user ${userId} was edited`,
       type: 'info'
     });
 
-     io.to(`user_${req.user.userId}`).emit('notification', {
-      message: `Task "${taskInfo}" of user ${userId} was edited`,
-      type: 'info'
-    });
+    const useremail = await getUserEmail(userId);
+    if (useremail) {
+      const { subject, html } = templates.taskUpdated(req.user.username, foundTask.title);
+      const { subject: aSubj, html: aHtml } = templates.adminNotif('Task Updated', req.user.username, foundTask.title);
+      sendEmail(useremail, subject, html);
+      sendEmail(process.env.ADMIN_EMAIL, aSubj, aHtml);
+    }
 
     return res.status(204).json({ message: 'Task modified successfully' });
-    }catch(error){
-        res.status(500).json({message:error.message});
-    }
-} 
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
-//delete a users task 
-const deleteTaskofUser = async(req,res) => {
+const deleteTaskofUser = async (req, res) => {
   const io = req.app.get('io');
-    const adminId = req.user.userId;
-    const userId = Number(req.params.userid);
-    const taskId = req.params.taskid;
-    try{
-        const [rows] = await db.query('SELECT * FROM tasks WHERE id=? AND user_id=?',[taskId,userId]);
-        if(rows.length===0)return res.status(404).json({message:'Task not found'});
-        const taskInfo = rows[0].title;
-        const [result] = await db.query('DELETE FROM tasks WHERE id=? AND user_id=?',[taskId,userId]);
-        if(result.affectedRows===0) return res.status(404).json({message:'Task not found'});
-        const [users] = await db.query('SELECT username FROM users WHERE id=?',[userId]);
-        username = users[0];
-        const logAction = `ADMIN DELETED TASK: ${taskInfo} FROM USER: ${username}`;
-        await db.query(
-              "INSERT INTO logs (user_id,action,activity_type) VALUES (?,?,?)",
-              [adminId, logAction, "CRUD"],
-            );
+  const adminId = req.user.userId;
+  const userId = Number(req.params.userid);
+  const taskId = Number(req.params.taskid);
+  try {
+    // idx_tasks_user_id 
+    const [rows] = await db.query(
+      'SELECT * FROM tasks WHERE id = ? AND user_id = ?',
+      [taskId, userId]
+    );
+    if (rows.length === 0) return res.status(404).json({ message: 'Task not found' });
+    const taskTitle = rows[0].title;
 
-            io.to(`user_${userId}`).emit('notification', {
-      message: `Your task "${taskInfo}" was deleted by an admin`,
+    const [result] = await db.query(
+      'DELETE FROM tasks WHERE id = ? AND user_id = ?',
+      [taskId, userId]
+    );
+    if (result.affectedRows === 0) return res.status(404).json({ message: 'Task not found' });
+
+    await db.query(
+      "INSERT INTO logs (user_id, action, activity_type) VALUES (?, ?, ?)",
+      [adminId, `ADMIN DELETED TASK: ${taskTitle} FROM USER: ${userId}`, "ADMIN"]
+    );
+
+    io.to(`user_${userId}`).emit('notification', {
+      message: `Your task "${taskTitle}" was deleted by an admin`,
       type: 'warning'
     });
-    io.to(`user_${req.user.userId}`).emit('notification', {
-      message: `Task "${taskInfo}" of user ${userId} was deleted`,
+    io.to(`user_${adminId}`).emit('notification', {
+      message: `Task "${taskTitle}" of user ${userId} was deleted`,
       type: 'info'
     });
 
-
-        return res.status(200).json({message:'Task deleted succesfully'});
-    }catch(error){
-        res.status(500).json({ message: error.message });
+    const useremail = await getUserEmail(userId);
+    if (useremail) {
+      const { subject, html } = templates.taskDeleted(req.user.username, taskTitle);
+      const { subject: aSubj, html: aHtml } = templates.adminNotif('Task Deleted', req.user.username, taskTitle);
+      sendEmail(useremail, subject, html);
+      sendEmail(process.env.ADMIN_EMAIL, aSubj, aHtml);
     }
 
-}
-
-const toggleCompletionadmin = async (req,res)=>{
-    const adminId = req.user.userId;
-    const userId = Number(req.params.userid);
-    const taskId = req.params.taskid;
-    try{
-        const [rows] = await db.query('SELECT * FROM tasks WHERE id=? AND user_id=?',[taskId,userId]);
-        if(rows.length===0)return res.status(404).json({message:"Task not found"});
-        const task = rows[0];
-        const newStatus = task.is_completed?0:1;
-        await db.query("UPDATE tasks SET is_completed=? WHERE id=? AND user_id=?",[newStatus,taskId,userId]);
-        const logAction = `ADMIN ${newStatus ? 'COMPLETED' : 'UNCOMPLETED'} TASK: ${task.title}`;
-        await db.query(
-      "INSERT INTO logs (user_id,action,activity_type) VALUES (?,?,?)",
-      [adminId, logAction, "CRUD"],
-    );
-     res.status(200).json({is_completed:newStatus});
-
-    }catch(error){
-    res.status(500).json({message:error.message});
-  }
-}
-
-const getSubtasksofUser = async(req, res) => {
-  const taskId = Number(req.params.taskid);
-  try {
-    const [rows] = await db.query(
-      "SELECT * FROM subtasks WHERE task_id=?", 
-      [taskId]
-    );
-    res.json(rows);
-  } catch(error) {
+    return res.status(200).json({ message: 'Task deleted successfully' });
+  } catch (error) {
     res.status(500).json({ message: error.message });
   }
-}
+};
 
-//update subtasks 
-const updateSubtaskofUser = async(req, res) => {
+const toggleCompletionadmin = async (req, res) => {
+  const adminId = req.user.userId;
+  const userId = Number(req.params.userid);
+  const taskId = Number(req.params.taskid);
+  try {
+    // idx_tasks_user_id 
+    const [rows] = await db.query(
+      'SELECT * FROM tasks WHERE id = ? AND user_id = ?',
+      [taskId, userId]
+    );
+    if (rows.length === 0) return res.status(404).json({ message: "Task not found" });
+    const task = rows[0];
+
+    const newStatus = task.is_completed ? 0 : 1;
+    await db.query(
+      "UPDATE tasks SET is_completed = ? WHERE id = ? AND user_id = ?",
+      [newStatus, taskId, userId]
+    );
+
+    await db.query(
+      "INSERT INTO logs (user_id, action, activity_type) VALUES (?, ?, ?)",
+      [adminId, `ADMIN ${newStatus ? 'COMPLETED' : 'UNCOMPLETED'} TASK: ${task.title}`, "ADMIN"]
+    );
+
+    if (newStatus === 1) {
+      const useremail = await getUserEmail(userId);
+      if (useremail) {
+        const { subject, html } = templates.taskCompleted(req.user.username, task.title);
+        const { subject: aSubj, html: aHtml } = templates.adminNotif('Task Completed', req.user.username, task.title);
+        sendEmail(useremail, subject, html);
+        sendEmail(process.env.ADMIN_EMAIL, aSubj, aHtml);
+      }
+    }
+
+    res.status(200).json({ is_completed: newStatus });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getSubtasksofUser = async (req, res) => {
+  const taskId = Number(req.params.taskid);
+  try {
+    // idx_subtasks_task_id covers this query
+    const [rows] = await db.query("SELECT * FROM subtasks WHERE task_id = ?", [taskId]);
+    res.json(rows);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const updateSubtaskofUser = async (req, res) => {
   const io = req.app.get('io');
+  const adminId = req.user.userId;
   const userId = Number(req.params.userid);
   const subtaskId = Number(req.params.subtaskid);
-  const adminId = req.user.userId;
   const { newtitle, newdescription } = req.body;
   try {
+    // JOIN gives us the subtask + parent task title in one query
+    // idx_subtasks_task_id 
     const [rows] = await db.query(
-      "SELECT * FROM subtasks WHERE id=?", 
+      `SELECT s.*, t.title AS parentTaskTitle
+       FROM subtasks s
+       JOIN tasks t ON s.task_id = t.id
+       WHERE s.id = ?`,
       [subtaskId]
     );
     if (rows.length === 0) return res.status(404).json({ message: "Subtask not found" });
     const subtask = rows[0];
+
     await db.query(
-      "UPDATE subtasks SET title=?, description=? WHERE id=?",
+      "UPDATE subtasks SET title = ?, description = ? WHERE id = ?",
       [newtitle || subtask.title, newdescription || subtask.description, subtaskId]
     );
-    const logAction = `ADMIN MODIFIED SUBTASK: ${subtask.title}`;
+
     await db.query(
-      "INSERT INTO logs (user_id,action,activity_type) VALUES (?,?,?)",
-      [adminId, logAction, "ADMIN"]
+      "INSERT INTO logs (user_id, action, activity_type) VALUES (?, ?, ?)",
+      [adminId, `ADMIN MODIFIED SUBTASK: ${subtask.title}`, "ADMIN"]
     );
+
     io.to(`user_${userId}`).emit('notification', {
       message: `Your subtask "${subtask.title}" was edited by an admin`,
       type: 'info'
     });
-    io.to(`user_${process.env.ADMIN_USER_ID}`).emit('notification', {
+    io.to(`user_${adminId}`).emit('notification', {
       message: `Subtask "${subtask.title}" of user ${userId} was edited`,
       type: 'info'
     });
 
+    const useremail = await getUserEmail(userId);
+    if (useremail) {
+      const { subject, html } = templates.subtaskUpdated(req.user.username, newtitle || subtask.title, subtask.parentTaskTitle);
+      const { subject: aSubj, html: aHtml } = templates.adminNotif('Subtask Updated', req.user.username, subtask.title);
+      sendEmail(useremail, subject, html);
+      sendEmail(process.env.ADMIN_EMAIL, aSubj, aHtml);
+    }
+
     return res.status(200).json({ message: "Subtask updated successfully" });
-  } catch(error) {
+  } catch (error) {
     res.status(500).json({ message: error.message });
   }
-}
-//delete subtasks
-const deleteSubtaskofUser = async(req, res) => {
+};
+
+const deleteSubtaskofUser = async (req, res) => {
   const io = req.app.get('io');
+  const adminId = req.user.userId;
   const userId = Number(req.params.userid);
   const subtaskId = Number(req.params.subtaskid);
-  const adminId = req.user.userId;
   try {
+    // JOIN gives us the subtask + parent task title in one query
+    // idx_subtasks_task_id 
     const [rows] = await db.query(
-      "SELECT * FROM subtasks WHERE id=?", 
+      `SELECT s.*, t.title AS parentTaskTitle
+       FROM subtasks s
+       JOIN tasks t ON s.task_id = t.id
+       WHERE s.id = ?`,
       [subtaskId]
     );
     if (rows.length === 0) return res.status(404).json({ message: "Subtask not found" });
-    const subtaskTitle = rows[0].title;
-    await db.query("DELETE FROM subtasks WHERE id=?", [subtaskId]);
-    const logAction = `ADMIN DELETED SUBTASK: ${subtaskTitle}`;
+    const subtask = rows[0];
+
+    await db.query("DELETE FROM subtasks WHERE id = ?", [subtaskId]);
+
     await db.query(
-      "INSERT INTO logs (user_id,action,activity_type) VALUES (?,?,?)",
-      [adminId, logAction, "ADMIN"]
+      "INSERT INTO logs (user_id, action, activity_type) VALUES (?, ?, ?)",
+      [adminId, `ADMIN DELETED SUBTASK: ${subtask.title}`, "ADMIN"]
     );
 
-      io.to(`user_${userId}`).emit('notification', {
-      message: `Your subtask "${subtaskTitle}" was deleted by an admin`,
+    io.to(`user_${userId}`).emit('notification', {
+      message: `Your subtask "${subtask.title}" was deleted by an admin`,
       type: 'warning'
     });
-    io.to(`user_${req.user.userId}`).emit('notification', {
-      message: `Subtask "${subtaskTitle}" of user ${userId} was deleted`,
+    io.to(`user_${adminId}`).emit('notification', {
+      message: `Subtask "${subtask.title}" of user ${userId} was deleted`,
       type: 'info'
     });
 
+    const useremail = await getUserEmail(userId);
+    if (useremail) {
+      const { subject, html } = templates.subtaskDeleted(req.user.username, subtask.title, subtask.parentTaskTitle);
+      const { subject: aSubj, html: aHtml } = templates.adminNotif('Subtask Deleted', req.user.username, subtask.title);
+      sendEmail(useremail, subject, html);
+      sendEmail(process.env.ADMIN_EMAIL, aSubj, aHtml);
+    }
+
     return res.status(200).json({ message: "Subtask deleted successfully" });
-  } catch(error) {
-    console.error(error)
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ message: error.message });
   }
-}
+};
 
-
-module.exports={getAllUsers,deleteUser,getTasksOfUser,updateTaskofUser,deleteTaskofUser,toggleCompletionadmin, getSubtasksofUser, updateSubtaskofUser, deleteSubtaskofUser}
+module.exports = {
+  getAllUsers, deleteUser,
+  getTasksOfUser, updateTaskofUser, deleteTaskofUser, toggleCompletionadmin,
+  getSubtasksofUser, updateSubtaskofUser, deleteSubtaskofUser
+};
