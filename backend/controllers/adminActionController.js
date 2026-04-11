@@ -27,6 +27,7 @@ const deleteUser = async (req, res) => {
 
     const [result] = await db.query('DELETE FROM users WHERE id = ?', [userId]);
     if (result.affectedRows === 0) return res.status(404).json({ message: 'User not found' });
+  
 
     await db.query(
       "INSERT INTO logs (user_id, action, activity_type) VALUES (?, ?, ?)",
@@ -39,14 +40,13 @@ const deleteUser = async (req, res) => {
   }
 };
 
-
 const getTasksOfUser = async (req, res) => {
   const userId = Number(req.params.userid);
   try {
-    // idx_tasks_user_id covers this query
+    // idx_tasks_user_id 
     const [result] = await db.query("SELECT * FROM tasks WHERE user_id = ?", [userId]);
     for (let task of result) {
-      // idx_subtasks_task_id covers this query
+      // idx_subtasks_task_id 
       const [subtaskCount] = await db.query(
         "SELECT COUNT(*) as count FROM subtasks WHERE task_id = ?",
         [task.id]
@@ -67,7 +67,7 @@ const updateTaskofUser = async (req, res) => {
   const taskId = Number(req.params.taskid);
   const { newtitle, newdescription } = req.body;
   try {
-    // idx_tasks_user_id 
+    // idx_tasks_user_id
     const [tasres] = await db.query(
       'SELECT * FROM tasks WHERE id = ? AND user_id = ?',
       [taskId, userId]
@@ -80,7 +80,7 @@ const updateTaskofUser = async (req, res) => {
       [newtitle || foundTask.title, newdescription || foundTask.description, taskId, userId]
     );
 
-    // idx_logs_user_id 
+    // idx_logs_user_id
     await db.query(
       "INSERT INTO logs (user_id, action, activity_type) VALUES (?, ?, ?)",
       [adminId, `ADMIN MODIFIED TASK: ${foundTask.title}`, "ADMIN"]
@@ -90,6 +90,7 @@ const updateTaskofUser = async (req, res) => {
       message: `Your task "${foundTask.title}" was edited by an admin`,
       type: 'info'
     });
+    io.to(`user_${adminId}`).emit('admin_refresh', {});
     io.to(`user_${adminId}`).emit('notification', {
       message: `Task "${foundTask.title}" of user ${userId} was edited`,
       type: 'info'
@@ -103,7 +104,7 @@ const updateTaskofUser = async (req, res) => {
       sendEmail(process.env.ADMIN_EMAIL, aSubj, aHtml);
     }
 
-    return res.status(204).json({ message: 'Task modified successfully' });
+    return res.status(200).json({ message: 'Task modified successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -115,7 +116,7 @@ const deleteTaskofUser = async (req, res) => {
   const userId = Number(req.params.userid);
   const taskId = Number(req.params.taskid);
   try {
-    // idx_tasks_user_id 
+    // idx_tasks_user_id
     const [rows] = await db.query(
       'SELECT * FROM tasks WHERE id = ? AND user_id = ?',
       [taskId, userId]
@@ -138,6 +139,7 @@ const deleteTaskofUser = async (req, res) => {
       message: `Your task "${taskTitle}" was deleted by an admin`,
       type: 'warning'
     });
+    io.to(`user_${adminId}`).emit('admin_refresh', {});
     io.to(`user_${adminId}`).emit('notification', {
       message: `Task "${taskTitle}" of user ${userId} was deleted`,
       type: 'info'
@@ -162,7 +164,7 @@ const toggleCompletionadmin = async (req, res) => {
   const userId = Number(req.params.userid);
   const taskId = Number(req.params.taskid);
   try {
-    // idx_tasks_user_id 
+    // idx_tasks_user_id
     const [rows] = await db.query(
       'SELECT * FROM tasks WHERE id = ? AND user_id = ?',
       [taskId, userId]
@@ -191,6 +193,16 @@ const toggleCompletionadmin = async (req, res) => {
       }
     }
 
+    io.to(`user_${userId}`).emit('notification', {
+      message: `Your task "${task.title}" was ${newStatus ? 'completed' : 'uncompleted'} by an admin`,
+      type: 'info'
+    });
+    io.to(`user_${adminId}`).emit('admin_refresh', {});
+    io.to(`user_${adminId}`).emit('notification', {
+      message: `Task "${task.title}" of user ${userId} marked as ${newStatus ? 'completed' : 'uncompleted'}`,
+      type: 'success'
+    });
+
     res.status(200).json({ is_completed: newStatus });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -200,7 +212,7 @@ const toggleCompletionadmin = async (req, res) => {
 const getSubtasksofUser = async (req, res) => {
   const taskId = Number(req.params.taskid);
   try {
-    // idx_subtasks_task_id covers this query
+    // idx_subtasks_task_id 
     const [rows] = await db.query("SELECT * FROM subtasks WHERE task_id = ?", [taskId]);
     res.json(rows);
   } catch (error) {
@@ -216,7 +228,7 @@ const updateSubtaskofUser = async (req, res) => {
   const { newtitle, newdescription } = req.body;
   try {
     // JOIN gives us the subtask + parent task title in one query
-    // idx_subtasks_task_id 
+    // idx_subtasks_task_id
     const [rows] = await db.query(
       `SELECT s.*, t.title AS parentTaskTitle
        FROM subtasks s
@@ -241,6 +253,7 @@ const updateSubtaskofUser = async (req, res) => {
       message: `Your subtask "${subtask.title}" was edited by an admin`,
       type: 'info'
     });
+    io.to(`user_${adminId}`).emit('admin_refresh', {});
     io.to(`user_${adminId}`).emit('notification', {
       message: `Subtask "${subtask.title}" of user ${userId} was edited`,
       type: 'info'
@@ -267,7 +280,7 @@ const deleteSubtaskofUser = async (req, res) => {
   const subtaskId = Number(req.params.subtaskid);
   try {
     // JOIN gives us the subtask + parent task title in one query
-    // idx_subtasks_task_id 
+    // idx_subtasks_task_id
     const [rows] = await db.query(
       `SELECT s.*, t.title AS parentTaskTitle
        FROM subtasks s
@@ -289,6 +302,7 @@ const deleteSubtaskofUser = async (req, res) => {
       message: `Your subtask "${subtask.title}" was deleted by an admin`,
       type: 'warning'
     });
+    io.to(`user_${adminId}`).emit('admin_refresh', {});
     io.to(`user_${adminId}`).emit('notification', {
       message: `Subtask "${subtask.title}" of user ${userId} was deleted`,
       type: 'info'

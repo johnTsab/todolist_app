@@ -1,64 +1,101 @@
+require('dotenv').config();
 const express = require('express');
 const http = require('http');
-const {Server} = require('socket.io');
+const { Server } = require('socket.io');
 const cors = require('cors');
-const {globalLimiter} = require('./middleware/rateLimiter.js');
+const cookieParser = require('cookie-parser');
+const passport = require('./src/config/passport'); 
+const session = require('express-session'); 
+
+const todolistRoutes = require('./routes/todolistRoutes');
+const oauthRoutes = require('./routes/oAuthroutes'); 
+
 const app = express();
 const server = http.createServer(app);
 
-const io = new Server(server,{
-    cors: {
-         origin: ['https://todolist-app-kappa-jet.vercel.app','http://localhost:4200'],
-  credentials: true   
-    }
-});
 
-app.set('io',io);
+app.set('trust proxy', 1);
 
-io.on('connection',(socket)=>{console.log('Client connected:',socket.id)
-    socket.on('register',(userId)=>{
-        socket.join(`user_${userId}`); //personal room for each user
-        console.log(`User ${userId} joined their room`);
-    })
+// CORS
+const allowedOrigins = [
+  'http://localhost:4200',
+  'https://todolist-app-kappa-jet.vercel.app', 
+];
 
-    socket.on('disconnect',()=>{
-        console.log('Client disconnected:',socket.id);
-    });
-});
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+  })
+);
 
-app.use(cors({
-    origin: ['https://todolist-app-kappa-jet.vercel.app','http://localhost:4200'],
-    credentials: true
-}));
-
-const conditionalJSON = (req,res,next) => {
-    if(req.method === 'GET' || req.method==='HEAD') return next();
-    express.json()(req,res,next);
-};
-
-app.use(conditionalJSON);
-app.use(express.urlencoded({
-    "extended" : true
-}));
-
-const cookieParser = require("cookie-parser");
+// Middleware
+app.use(express.json());
 app.use(cookieParser());
 
-//app.use(globalLimiter);
+// Session middleware 
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'fallback-secret-change-me',
+    resave: false,
+    saveUninitialized: false,
+  })
+);
 
-const Routes = require("./routes/todolistRoutes");
-app.use("/api",Routes);
+// Initialize Passport
+app.use(passport.initialize());
 
-require("dotenv").config();
-
-const PORT = process.env.PORT || 3000 ;
-const mysql2 = require("mysql2");
-
-
-app.get('/',(req,res)=>{
-    res.send('Server running');
-})
-
-server.listen(process.env.PORT || 3000, () => {
-  console.log('Server running');
+// Socket.io
+const io = new Server(server, {
+  cors: {
+    origin: allowedOrigins,
+    credentials: true,
+  },
 });
+
+app.set('io', io);
+
+io.on('connection', (socket) => {
+  console.log('Client connected:', socket.id);
+
+  socket.on('register', (userId) => {
+    socket.join(`user_${userId}`);
+    console.log(`User ${userId} joined their room`);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id);
+  });
+});
+
+// Routes
+app.use('/api', todolistRoutes);
+app.use('/api/auth', oauthRoutes); // NEW
+
+// Health check
+app.get('/', (req, res) => {
+  res.json({ status: 'Server is running' });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Internal server error' });
+});
+
+// Start server
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+
+
+
+

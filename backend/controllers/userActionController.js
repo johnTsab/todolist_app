@@ -14,7 +14,7 @@ const getTasks = async (req, res) => {
     // idx_tasks_user_id 
     const [rows] = await db.query("SELECT * FROM tasks WHERE user_id = ?", [userId]);
     for (let task of rows) {
-      // idx_subtasks_task_id 
+      // idx_subtasks_task_id
       const [subtaskCount] = await db.query(
         "SELECT COUNT(*) as count FROM subtasks WHERE task_id = ?",
         [task.id]
@@ -38,13 +38,13 @@ const addTask = async (req, res) => {
     const useremail = await getUserEmail(userId);
     if (!useremail) return res.status(404).json({ message: "User email not found" });
 
-    // idx_tasks_user_id 
+    // idx_tasks_user_id
     const [result] = await db.query(
       "INSERT INTO tasks (user_id, title, description) VALUES (?, ?, ?)",
       [userId, title, description || null]
     );
 
-    // idx_logs_user_id 
+    // idx_logs_user_id
     await db.query(
       "INSERT INTO logs (user_id, action, activity_type) VALUES (?, ?, ?)",
       [userId, `USER ADDED TASK: ${title}`, "CRUD"]
@@ -76,7 +76,7 @@ const updateTask = async (req, res) => {
   const { newtitle, newdescription } = req.body;
   const id = Number(req.params.id);
   try {
-    // idx_tasks_user_id 
+    // idx_tasks_user_id
     const [tasres] = await db.query('SELECT * FROM tasks WHERE id = ?', [id]);
     if (tasres.length === 0) return res.status(404).json({ message: 'Task not found' });
     const foundTask = tasres[0];
@@ -107,7 +107,7 @@ const updateTask = async (req, res) => {
     sendEmail(useremail, subject, html);
     sendEmail(process.env.ADMIN_EMAIL, aSubj, aHtml);
 
-    return res.status(204).json({ message: 'Task modified successfully' });
+    return res.status(200).json({ message: 'Task modified successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -146,7 +146,7 @@ const deleteTask = async (req, res) => {
     sendEmail(useremail, subject, html);
     sendEmail(process.env.ADMIN_EMAIL, aSubj, aHtml);
 
-    return res.status(204).json({ message: 'Task deleted successfully' });
+    return res.status(200).json({ message: 'Task deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -200,7 +200,7 @@ const getSubtasks = async (req, res) => {
     if (!rows[0]) return res.status(404).json({ message: "Task not found" });
     if (rows[0].user_id !== userId) return res.status(403).json({ message: "Forbidden" });
 
-    // idx_subtasks_task_id 
+    // idx_subtasks_task_id
     const [subtasks] = await db.query("SELECT * FROM subtasks WHERE task_id = ?", [taskId]);
     res.status(200).json(subtasks);
   } catch (error) {
@@ -217,7 +217,7 @@ const addSubtask = async (req, res) => {
 
     if (!title) return res.status(400).json({ message: "Title is required" });
 
-    // idx_tasks_user_id 
+    // idx_tasks_user_id covers this; also gives us the parent title for the email
     const [taskRes] = await db.query("SELECT * FROM tasks WHERE id = ?", [taskId]);
     if (taskRes.length === 0) return res.status(404).json({ message: 'Task not found' });
     const task = taskRes[0];
@@ -226,7 +226,7 @@ const addSubtask = async (req, res) => {
       return res.status(403).json({ message: "Forbidden" });
     }
 
-    // idx_subtasks_task_id 
+    // idx_subtasks_task_id
     const [result] = await db.query(
       "INSERT INTO subtasks (task_id, title, description, user_id) VALUES (?, ?, ?, ?)",
       [taskId, title, description || null, userId]
@@ -267,7 +267,7 @@ const deleteSubtask = async (req, res) => {
     const userId = req.user.userId;
 
     // JOIN gives us the subtask + parent task title in one query
-    // idx_subtasks_task_id 
+    // idx_subtasks_task_id
     const [rows] = await db.query(
       `SELECT s.*, t.user_id AS taskOwner, t.title AS parentTaskTitle
        FROM subtasks s
@@ -306,7 +306,7 @@ const deleteSubtask = async (req, res) => {
       sendEmail(process.env.ADMIN_EMAIL, aSubj, aHtml);
     }
 
-    res.status(204).json({ message: "Subtask deleted successfully" });
+    res.status(200).json({ message: "Subtask deleted successfully" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });
@@ -363,7 +363,7 @@ const updateSubtask = async (req, res) => {
       sendEmail(process.env.ADMIN_EMAIL, aSubj, aHtml);
     }
 
-    return res.status(204).json({ message: 'Subtask modified successfully' });
+    return res.status(200).json({ message: 'Subtask modified successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -375,7 +375,7 @@ const toggleSubtaskCompletion = async (req, res) => {
   const userId = req.user.userId;
   try {
     // JOIN fetches subtask + parent task title + ownership in one shot
-    // idx_subtasks_task_id 
+    // idx_subtasks_task_id
     const [rows] = await db.query(
       `SELECT s.*, t.user_id AS taskOwner, t.title AS parentTaskTitle
        FROM subtasks s
@@ -419,7 +419,7 @@ const toggleSubtaskCompletion = async (req, res) => {
 const getLogs = async (req, res) => {
   const userId = req.user.userId;
   try {
-    // idx_logs_user_id 
+    // idx_logs_user_id
     const [rows] = await db.query(
       "SELECT * FROM logs WHERE user_id = ? ORDER BY created_at DESC",
       [userId]
