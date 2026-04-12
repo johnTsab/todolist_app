@@ -88,6 +88,8 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: 'Internal server error' });
 });
+console.log('ADMIN_EMAIL:', JSON.stringify(process.env.ADMIN_EMAIL));
+console.log('EMAIL_PASS length:', process.env.EMAIL_PASS?.length);
 
 // Start server
 const PORT = process.env.PORT || 3000;
