@@ -5,13 +5,15 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: process.env.ADMIN_EMAIL,
     pass: process.env.EMAIL_PASS
-  }
+  },
+  logger: true,  
+  debug: true   
 });
 
 const sendEmail = async (to, subject, html) => {
   try {
     await transporter.sendMail({
-      from: `"Simpl" <${process.env.EMAIL_USER}>`,
+      from: `"Simpl" <${process.env.ADMIN_EMAIL}>`,
       to,
       subject,
       html
