@@ -28,12 +28,12 @@ const googleCallbackController = async (req, res) => {
       [user.id, `User logged in via Google OAuth`, 'AUTH']
     );
 
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 24 * 60 * 60 * 1000, 
-    });
+  res.cookie('refreshToken', refreshToken, {
+  httpOnly: true,
+  secure: true,
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  maxAge: 24 * 60 * 60 * 1000,
+});
 
     // Redirect to frontend with access token in URL
     // Frontend will grab it and store in localStorage
