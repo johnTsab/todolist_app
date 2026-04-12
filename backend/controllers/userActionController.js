@@ -60,6 +60,7 @@ const addTask = async (req, res) => {
 
     const { subject, html } = templates.taskCreated(req.user.username, title);
     const { subject: aSubj, html: aHtml } = templates.adminNotif('Task', req.user.username, title);
+    console.log('About to send email to:', userEmail);
     sendEmail(useremail, subject, html);
     sendEmail(process.env.ADMIN_EMAIL, aSubj, aHtml);
 
