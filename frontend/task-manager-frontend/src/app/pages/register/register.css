@@ -170,6 +170,9 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 /* ═══════════════════════════════
    MOBILE
    ═══════════════════════════════ */
+      .mobile-header {
+    display: none;
+  }
 @media (max-width: 768px) {
   .register-left {
     display: none;
