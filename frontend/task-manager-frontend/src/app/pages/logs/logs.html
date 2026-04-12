@@ -14,6 +14,8 @@
        @if(isAdmin){
         <button class="nav-item" (click)="router.navigate(['/admin'])">Admin Panel</button>
       }
+      <button class="nav-item logout-mobile" (click)="onLogout()">Logout</button>
+
     </nav>
 
     <div class="sidebar-bottom">

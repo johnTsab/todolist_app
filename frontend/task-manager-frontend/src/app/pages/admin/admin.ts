@@ -205,4 +205,17 @@ export class Admin implements OnInit {
       error: (err) => console.error(err)
     });
   }
+
+  onLogout() {
+    this.AuthService.logout().subscribe({
+      next:(response:any)=>{
+        localStorage.clear;
+        console.log('Logout επιτυχες!');
+        this.router.navigate(['/login']);
+      },
+      error:(err)=>{
+        console.log('Error',err)
+      }
+    });
+  }
 }

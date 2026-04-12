@@ -1,31 +1,28 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,300&display=swap');
 
 :root {
- 
-  --sidebar-bg: #5e7a5c;   /* ← πιο σκούρο από #96a78d */
+  --sidebar-bg: #5e7a5c;
   --sidebar-border: #4a6349;
-  --surface-2: #c5d9be;    /* ← πιο σκούρο από #d9e9cf */
-  --border: #8aac88;       /* ← πιο σκούρο από #b6ceb4 */
-  --text: #1e2b1f;         /* ← πιο σκούρο από #2d3d2e */
+  --surface-2: #c5d9be;
+  --border: #8aac88;
+  --text: #1e2b1f;
   --text-muted: #5a7a58;
   --text-light: #6b8c69;
-  --accent: #4a6349;       /* ← πιο σκούρο από #7a9478 */
+  --accent: #4a6349;
   --accent-hover: #3a5039;
   --accent-dim: #c5d9be;
-  --left-bg: #4a6349;      /* ← για login/register left panel */
+  --left-bg: #4a6349;
   --left-border: #3a5039;
   --danger: #a93226;
   --danger-dim: #f9e8e8;
+  --surface: #ffffff;
+  --bg: #f0f0f0;
   --radius: 6px;
   --mono: 'DM Mono', monospace;
   --serif: 'Fraunces', Georgia, serif;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 .register-page {
   display: flex;
@@ -33,7 +30,6 @@
   font-family: var(--mono);
 }
 
-/* ── Left Panel ── */
 .register-left {
   width: 400px;
   background: var(--left-bg);
@@ -45,11 +41,7 @@
   flex-shrink: 0;
 }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+.brand { display: flex; align-items: center; gap: 10px; }
 
 .brand-name {
   font-family: var(--serif);
@@ -59,10 +51,7 @@
   letter-spacing: -0.2px;
 }
 
-.brand-tagline {
-  margin-top: auto;
-  padding-top: 48px;
-}
+.brand-tagline { margin-top: auto; padding-top: 48px; }
 
 .brand-tagline p {
   font-family: var(--serif);
@@ -73,12 +62,8 @@
   letter-spacing: -0.5px;
 }
 
-.brand-tagline em {
-  font-style: italic;
-  color: #f0f0f0;
-}
+.brand-tagline em { font-style: italic; color: #f0f0f0; }
 
-/* ── Right Panel ── */
 .register-right {
   flex: 1;
   display: flex;
@@ -110,22 +95,11 @@
   margin-bottom: 6px;
 }
 
-.register-header p {
-  font-size: 12px;
-  color: var(--text-muted);
-}
+.register-header p { font-size: 12px; color: var(--text-muted); }
 
-.register-form {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
+.register-form { display: flex; flex-direction: column; gap: 18px; }
 
-.field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
+.field-group { display: flex; flex-direction: column; gap: 6px; }
 
 .field-label {
   font-size: 11px;
@@ -152,7 +126,7 @@
 .input-field:focus {
   border-color: var(--accent);
   background: var(--surface);
-  box-shadow: 0 0 0 3px rgba(150, 167, 141, 0.15);
+  box-shadow: 0 0 0 3px rgba(150,167,141,0.15);
 }
 
 .error-message {
@@ -164,7 +138,7 @@
 
 .success-message {
   font-size: 12px;
-  color: var(--success);
+  color: var(--accent);
   text-align: center;
   margin-top: -4px;
 }
@@ -186,21 +160,68 @@
 
 .btn-submit:hover { background: var(--accent-hover); }
 
-.register-footer {
-  font-size: 12px;
-  color: var(--text-muted);
-  text-align: center;
-}
+.register-footer { font-size: 12px; color: var(--text-muted); text-align: center; }
 
-.link {
-  color: var(--accent-hover);
-  text-decoration: none;
-  transition: opacity 0.15s;
-}
-
+.link { color: var(--accent-hover); text-decoration: none; transition: opacity 0.15s; }
 .link:hover { opacity: 0.75; }
 
-button:disabled{
-  opacity:0.6;
-  cursor:not-allowed;
+button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ═══════════════════════════════
+   MOBILE
+   ═══════════════════════════════ */
+@media (max-width: 768px) {
+  .register-left {
+    display: none;
+  }
+
+  .register-right {
+    background: var(--left-bg);
+    align-items: flex-start;
+    padding: 56px 20px 32px;
+  }
+
+  .register-card {
+    border: none;
+    box-shadow: none;
+    background: var(--surface);
+    padding: 32px 24px;
+    gap: 20px;
+    border-radius: 16px;
+  }
+  .mobile-header {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 0 4px 8px;
+    width: 100%;
+    max-width: 380px;
+  }
+
+  .mobile-header .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .mobile-header .brand-name {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: 18px;
+    color: #ffffff;
+  }
+
+  .mobile-header .mobile-quote {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: 22px;
+    line-height: 1.3;
+    color: #ffffff;
+    letter-spacing: -0.3px;
+  }
+
+  .mobile-header .mobile-quote em {
+    font-style: italic;
+    color: #d9e9cf;
+  }
 }

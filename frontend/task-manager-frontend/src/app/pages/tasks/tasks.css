@@ -19,16 +19,15 @@
   --mono: 'DM Mono', monospace;
   --serif: 'Fraunces', Georgia, serif;
   --sidebar-width: 220px;
+  --bottom-nav-height: 56px;
 }
 
-/* ── Layout ── */
 .tasks-page {
   display: flex;
   min-height: 100vh;
   background: var(--bg);
 }
 
-/* ── Sidebar ── */
 .sidebar {
   width: var(--sidebar-width);
   background: var(--sidebar-bg);
@@ -119,7 +118,6 @@
   color: #ffffff;
 }
 
-/* ── Content Area ── */
 .content-area {
   display: flex;
   flex: 1;
@@ -127,7 +125,6 @@
   min-height: 100vh;
 }
 
-/* ── Main ── */
 .tasks-main {
   flex: 1;
   padding: 48px 56px;
@@ -144,7 +141,6 @@
   letter-spacing: -0.5px;
 }
 
-/* ── Add Task ── */
 .add-task-section { margin-bottom: 32px; }
 
 .form-row {
@@ -196,7 +192,6 @@
   white-space: nowrap;
 }
 
-/* ── Tasks Meta ── */
 .tasks-meta { margin-bottom: 12px; }
 
 .task-count {
@@ -206,7 +201,6 @@
   text-transform: uppercase;
 }
 
-/* ── Task List ── */
 .task-list {
   display: flex;
   flex-direction: column;
@@ -275,7 +269,6 @@
   text-overflow: ellipsis;
 }
 
-/* ── Task Actions ── */
 .task-card-actions {
   display: flex;
   gap: 4px;
@@ -314,7 +307,6 @@
 .btn-delete { color: var(--text-muted); }
 .btn-delete:hover { background: var(--danger-dim); border-color: #f5c6c6; color: var(--danger); }
 
-/* ── Edit Panel ── */
 .edit-panel {
   display: flex;
   flex-direction: row;
@@ -365,7 +357,6 @@
 
 .btn-cancel:hover { color: var(--text); border-color: var(--text-muted); }
 
-/* ── Inline Subtasks Dropdown ── */
 .subtasks-expanded {
   margin: 0 0 4px 38px;
   border-left: 2px solid var(--border);
@@ -440,7 +431,6 @@
   margin-top: 4px;
 }
 
-/* ── Empty State ── */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -453,11 +443,10 @@
 .empty-icon { font-size: 28px; opacity: 0.35; }
 .empty-state p { font-size: 13px; }
 
-/* ── Notification Toast ── */
 .notification-toast {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  bottom: 80px;
+  right: 16px;
   background: var(--accent);
   color: white;
   padding: 12px 20px;
@@ -477,4 +466,113 @@
 @keyframes slideIn {
   from { transform: translateX(100%); }
   to   { transform: translateX(0); }
+}
+
+/* ═══════════════════════════════
+   MOBILE — πάντα ΤΕΛΕΥΤΑΙΟ
+   ═══════════════════════════════ */
+   .logout-mobile {
+  display: none;
+}
+@media (max-width: 768px) {
+
+  .sidebar {
+    width: 100%;
+    height: var(--bottom-nav-height);
+    flex-direction: row;
+    align-items: center;
+    padding: 0 8px;
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    border-right: none;
+    border-top: 1px solid var(--sidebar-border);
+    gap: 0;
+    z-index: 100;
+  }
+
+   .logout-mobile {
+    display: block;
+  }
+
+  .sidebar-logo,
+  .sidebar-user,
+  .sidebar-bottom {
+    display: none;
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    justify-content: space-around;
+    width: 100%;
+    flex: 1;
+    gap: 0;
+  }
+
+  .nav-item {
+    flex: 1;
+    text-align: center;
+    padding: 8px 4px;
+    font-size: 11px;
+  }
+
+  .content-area {
+    margin-left: 0;
+  }
+
+  .tasks-main {
+    margin-left: 0;
+    padding: 24px 16px 80px 16px;
+    max-width: 100%;
+  }
+
+  .form-row {
+    flex-direction: column;
+  }
+
+  .form-row .btn-add {
+    width: 100%;
+  }
+
+  .task-card-actions {
+    opacity: 1;
+  }
+
+  .subtask-actions {
+    opacity: 1;
+  }
+
+  .edit-panel {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .edit-actions {
+    width: 100%;
+  }
+
+  .edit-actions .btn-save,
+  .edit-actions .btn-cancel {
+    flex: 1;
+  }
+
+  .subtasks-expanded {
+    margin-left: 16px;
+  }
+
+  .subtask-add-row {
+    flex-direction: column;
+  }
+
+  .subtask-add-row .btn-add--sm {
+    width: 100%;
+  }
+
+  .notification-toast {
+    bottom: 72px;
+    right: 12px;
+    left: 12px;
+    text-align: center;
+  }
 }
