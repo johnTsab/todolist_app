@@ -1,7 +1,7 @@
 // backend/routes/oauthRoutes.js
 const express = require('express');
 const router = express.Router();
-const passport = require('../src/config/passport');
+const passport = require('../passport')
 const { googleCallbackController } = require('../controllers/oAuthcontroller');
 
 // Initiate Google OAuth

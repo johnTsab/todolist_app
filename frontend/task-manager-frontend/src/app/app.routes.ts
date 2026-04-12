@@ -4,6 +4,7 @@ import {Tasks} from './pages/tasks/tasks';
 import {Logs} from './pages/logs/logs';
 import {Register} from './pages/register/register';
 import {Admin} from './pages/admin/admin';
+import { OauthCallbackComponent } from './pages/oauth-callback/oauth-callback';
 
 export const routes: Routes = [
     {path:'',redirectTo:'login',pathMatch:'full'},
@@ -11,5 +12,7 @@ export const routes: Routes = [
     {path:'tasks',component:Tasks},
     {path:'logs',component:Logs},
     {path:'register',component:Register},
-    {path:'admin',component:Admin}
+    {path:'admin',component:Admin},
+    {path:'oauth-callback',component:OauthCallbackComponent},
+    { path: '**', redirectTo: '/login' }
 ];

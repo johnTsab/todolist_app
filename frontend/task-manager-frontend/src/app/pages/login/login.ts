@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component,inject,ViewEncapsulation } from '@angular/
 import {FormsModule} from '@angular/forms';
 import {AuthService} from '../../services/auth';
 import {Router} from '@angular/router';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -18,6 +19,7 @@ export class Login {
   router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   isLoading = false; 
+  private apiUrl = environment.apiUrl;
 
   onSubmit(){
     this.errorMessage='';
@@ -40,6 +42,11 @@ export class Login {
       }
     });
   }
+
+   onGoogleLogin() {
+    window.location.href = `${environment.apiUrl.replace('/api', '')}/api/auth/google`;
+  }
+ 
 
   onLogout(){
     this.AuthService.logout().subscribe({
