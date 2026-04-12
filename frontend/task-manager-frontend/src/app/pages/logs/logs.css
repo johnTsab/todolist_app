@@ -1,28 +1,29 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,300&display=swap');
 
 :root {
- 
-  --sidebar-bg: #5e7a5c;   /* ← πιο σκούρο από #96a78d */
+  --sidebar-bg: #5e7a5c;
   --sidebar-border: #4a6349;
-  --surface-2: #c5d9be;    /* ← πιο σκούρο από #d9e9cf */
-  --border: #8aac88;       /* ← πιο σκούρο από #b6ceb4 */
-  --text: #1e2b1f;         /* ← πιο σκούρο από #2d3d2e */
+  --surface-2: #c5d9be;
+  --border: #8aac88;
+  --text: #1e2b1f;
   --text-muted: #5a7a58;
   --text-light: #6b8c69;
-  --accent: #4a6349;       /* ← πιο σκούρο από #7a9478 */
+  --accent: #4a6349;
   --accent-hover: #3a5039;
   --accent-dim: #c5d9be;
-  --left-bg: #4a6349;      /* ← για login/register left panel */
+  --left-bg: #4a6349;
   --left-border: #3a5039;
   --danger: #a93226;
   --danger-dim: #f9e8e8;
+  --surface: #ffffff;
+  --bg: #f0f0f0;
   --radius: 6px;
   --mono: 'DM Mono', monospace;
   --serif: 'Fraunces', Georgia, serif;
   --sidebar-width: 220px;
+  --bottom-nav-height: 56px;
 }
 
-/* ── Layout ── */
 .logs-page {
   display: flex;
   min-height: 100vh;
@@ -30,7 +31,6 @@
   font-family: var(--mono);
 }
 
-/* ── Sidebar ── */
 .sidebar {
   width: var(--sidebar-width);
   background: var(--sidebar-bg);
@@ -39,10 +39,10 @@
   flex-direction: column;
   padding: 24px 16px;
   position: fixed;
-  top: 0;
-  left: 0;
+  top: 0; left: 0;
   height: 100vh;
   gap: 8px;
+  z-index: 10;
 }
 
 .sidebar-logo {
@@ -117,11 +117,10 @@
 }
 
 .btn-logout:hover {
-  background: rgba(192, 57, 43, 0.2);
+  background: rgba(192,57,43,0.2);
   color: #ffffff;
 }
 
-/* ── Main ── */
 .logs-main {
   margin-left: var(--sidebar-width);
   flex: 1;
@@ -130,15 +129,14 @@
 }
 
 .page-title {
-  font-family: 'Fraunces', Georgia, serif !important;
-  font-weight: 300 !important;
-  font-size: 32px !important;
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 32px;
   color: var(--text);
   margin-bottom: 24px;
   letter-spacing: -0.5px;
 }
 
-/* ── Search ── */
 .input-field {
   font-family: var(--mono);
   font-size: 13px;
@@ -156,7 +154,7 @@
 .input-field:focus {
   border-color: var(--accent);
   background: var(--surface);
-  box-shadow: 0 0 0 3px rgba(122, 148, 120, 0.15);
+  box-shadow: 0 0 0 3px rgba(122,148,120,0.15);
 }
 
 .search-field {
@@ -165,7 +163,6 @@
   margin-bottom: 24px;
 }
 
-/* ── Logs List ── */
 .logs-list {
   display: flex;
   flex-direction: column;
@@ -208,10 +205,7 @@
   text-overflow: ellipsis;
 }
 
-.log-date {
-  font-size: 11px;
-  color: var(--text-muted);
-}
+.log-date { font-size: 11px; color: var(--text-muted); }
 
 .log-type {
   font-size: 11px;
@@ -228,7 +222,6 @@
 .log-type-crud  { color: var(--accent); background: #eef3ed; border-color: #b6ceb4; }
 .log-type-admin { color: #c0392b; background: #fdf2f2; border-color: #f5c6c6; }
 
-/* ── Empty State ── */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -244,4 +237,71 @@
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(3px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════
+   MOBILE
+   ═══════════════════════════════ */
+
+   .logout-mobile {
+  display: none;
+}
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    height: var(--bottom-nav-height);
+    flex-direction: row;
+    align-items: center;
+    padding: 0 8px;
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    border-right: none;
+    border-top: 1px solid var(--sidebar-border);
+    gap: 0;
+    z-index: 100;
+  }
+
+    .logout-mobile {
+    display: block;
+  }
+
+  .sidebar-logo,
+  .sidebar-user,
+  .sidebar-bottom { display: none; }
+
+  .sidebar-nav {
+    flex-direction: row;
+    justify-content: space-around;
+    width: 100%;
+    flex: 1;
+    gap: 0;
+  }
+
+  .nav-item {
+    flex: 1;
+    text-align: center;
+    padding: 8px 4px;
+    font-size: 11px;
+  }
+
+  .logs-main {
+    margin-left: 0;
+    padding: 24px 16px 80px 16px;
+    max-width: 100%;
+  }
+
+  .search-field {
+    max-width: 100%;
+  }
+
+  .log-action {
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .log-type {
+    display: none; /* κρύβεται σε mobile — φαίνεται μόνο το dot και η action */
+  }
 }
