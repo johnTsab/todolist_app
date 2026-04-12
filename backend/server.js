@@ -79,8 +79,8 @@ app.use('/api', todolistRoutes);
 app.use('/api/auth', oauthRoutes); // NEW
 
 // Health check
-app.get('/', (req, res) => {
-  res.json({ status: 'Server is running' });
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
 });
 
 // Error handler
