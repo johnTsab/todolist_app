@@ -42,6 +42,15 @@ const emailLayout = (content) => `
 `;
 
 const templates = {
+    welcomeEmail: (username) => ({
+    subject: 'Welcome to Simpl',
+    html: emailLayout(`
+      <p>Hello <b>${username}</b>,</p>
+      <p>Welcome to <b>Simpl</b> — your account has been created successfully.</p>
+      <p>You can now log in and start managing your tasks.</p>
+      <p style="margin-top:24px; color:#777;">If you didn't create this account, please contact us.</p>
+    `)
+  }),
   taskCreated: (username, title) => ({
     subject: 'Task Created',
     html: emailLayout(`

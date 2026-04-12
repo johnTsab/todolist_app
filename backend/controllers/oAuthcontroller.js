@@ -1,4 +1,3 @@
-// backend/controllers/oauthController.js
 const jwt = require('jsonwebtoken');
 const db = require('../src/config/database');
 

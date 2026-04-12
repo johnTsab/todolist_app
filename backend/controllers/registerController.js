@@ -49,6 +49,8 @@ if (rows2.length > 0) {
       "INSERT INTO logs (user_id,action,activity_type) VALUES (?,?,?)",
       [userId, "USER REGISTERED", "AUTH"],
     );
+    const { subject, html } = templates.welcomeEmail(username);
+    await sendEmail(email, subject, html);
     return res.status(201).json({message:"User registered succesfully",userId});
   } catch (err) {
      console.error('REGISTER ERROR:', err); // ← ΝΕΟ
