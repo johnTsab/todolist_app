@@ -15,7 +15,7 @@ simpl is a personal task manager with real-time notifications, role-based access
 
 | Login | Tasks |
 |-------|-------|
-| ![Login](./screenshots/loginscreen.png) | ![Tasks](./screenshots/tasksscreen.png) |
+| ![Login](./screenshots/loginscreen.png) | ![Tasks](./screenshots/taskscreen.png) |
 
 | Activity Log | Admin Panel |
 |-------------|-------------|
