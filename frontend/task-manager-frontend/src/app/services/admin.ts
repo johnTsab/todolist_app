@@ -45,4 +45,12 @@ updateSubtaskOfUser(userId: number, taskId: number, subtaskId: number, title:str
   return this.http.post(`${this.apiUrl}/admin/users/${userId}/tasks/${taskId}/subtasks/${subtaskId}`, {newtitle:title,newdescription:description});
 }
 
+toggleTaskCompletion(userId: number, taskId: number) {
+  return this.http.patch(`${this.apiUrl}/admin/users/${userId}/tasks/${taskId}/complete`, {});
+}
+
+toggleSubtaskCompletion(userId: number, taskId: number, subtaskId: number) {
+  return this.http.patch(`${this.apiUrl}/admin/users/${userId}/tasks/${taskId}/subtasks/${subtaskId}/complete`, {});
+}
+
 }

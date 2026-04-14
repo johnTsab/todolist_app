@@ -159,6 +159,7 @@ const deleteTaskofUser = async (req, res) => {
 };
 
 const toggleCompletionadmin = async (req, res) => {
+  const io = req.app.get('io');
   const adminId = req.user.userId;
   const userId = Number(req.params.userid);
   const taskId = Number(req.params.taskid);
@@ -204,6 +205,7 @@ const toggleCompletionadmin = async (req, res) => {
 
     res.status(200).json({ is_completed: newStatus });
   } catch (error) {
+    console.error('toggleCompletionadmin error:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -319,8 +321,50 @@ const deleteSubtaskofUser = async (req, res) => {
   }
 };
 
+const toggleSubtaskCompletionadmin = async (req, res) => {
+   const io = req.app.get('io');
+  const adminId = req.user.userId;
+  const userId = Number(req.params.userid);
+  const taskId = Number(req.params.taskid);
+  const subtaskId = Number(req.params.subtaskid);
+  try {
+    const [rows] = await db.query(
+      'SELECT * FROM subtasks WHERE id = ? AND task_id = ?',
+      [subtaskId, taskId]
+    );
+    if (rows.length === 0) return res.status(404).json({ message: "Subtask not found" });
+    const subtask = rows[0];
+
+    const newStatus = subtask.is_completed ? 0 : 1;
+    await db.query(
+      "UPDATE subtasks SET is_completed = ? WHERE id = ? AND task_id = ?",
+      [newStatus, subtaskId, taskId]
+    );
+
+    await db.query(
+      "INSERT INTO logs (user_id, action, activity_type) VALUES (?, ?, ?)",
+      [adminId, `ADMIN ${newStatus ? 'COMPLETED' : 'UNCOMPLETED'} SUBTASK: ${subtask.title}`, "ADMIN"]
+    );
+
+    io.to(`user_${userId}`).emit('notification', {
+      message: `Your subtask "${subtask.title}" was ${newStatus ? 'completed' : 'uncompleted'} by an admin`,
+      type: 'info'
+    });
+    io.to(`user_${adminId}`).emit('admin_refresh', {});
+    io.to(`user_${adminId}`).emit('notification', {
+      message: `Subtask "${subtask.title}" of user ${userId} marked as ${newStatus ? 'completed' : 'uncompleted'}`,
+      type: 'success'
+    });
+
+    res.status(200).json({ is_completed: newStatus });
+  } catch (error) {
+    console.error('toggleSubtaskCompletionadmin error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getAllUsers, deleteUser,
   getTasksOfUser, updateTaskofUser, deleteTaskofUser, toggleCompletionadmin,
-  getSubtasksofUser, updateSubtaskofUser, deleteSubtaskofUser
+  getSubtasksofUser, updateSubtaskofUser, deleteSubtaskofUser,toggleSubtaskCompletionadmin
 };

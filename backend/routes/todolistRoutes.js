@@ -8,7 +8,7 @@ const logOut = require ("../controllers/logoutController");
 const verifyJWT = require("../middleware/verifyJWT");
 const {authLimiter} = require("../middleware/rateLimiter");
 const verifyRole = require("../middleware/verifyRole");
-const {getAllUsers,deleteUser,getTasksOfUser,updateTaskofUser,deleteTaskofUser,toggleCompletionadmin, getSubtasksofUser, updateSubtaskofUser, deleteSubtaskofUser} = require("../controllers/adminActionController");
+const {getAllUsers,deleteUser,getTasksOfUser,updateTaskofUser,deleteTaskofUser,toggleCompletionadmin, getSubtasksofUser, updateSubtaskofUser, deleteSubtaskofUser,toggleSubtaskCompletionadmin} = require("../controllers/adminActionController");
 
 //regular user routes
 router.get("/tasks",verifyJWT,verifyRole(["USER","ADMIN"]),getTasks); //get user tasks
@@ -33,6 +33,7 @@ router.patch("/admin/users/:userid/tasks/:taskid/complete",verifyJWT,verifyRole(
 router.get("/admin/users/:userid/tasks/:taskid/subtasks", verifyJWT, verifyRole(["ADMIN"]), getSubtasksofUser);
 router.post("/admin/users/:userid/tasks/:taskid/subtasks/:subtaskid", verifyJWT, verifyRole(["ADMIN"]), updateSubtaskofUser);
 router.delete("/admin/users/:userid/tasks/:taskid/subtasks/:subtaskid", verifyJWT, verifyRole(["ADMIN"]), deleteSubtaskofUser);
+router.patch("/admin/users/:userid/tasks/:taskid/subtasks/:subtaskid/complete", verifyJWT, verifyRole(["ADMIN"]), toggleSubtaskCompletionadmin);
 
 //auth routes
 router.post("/signup",authLimiter, registerUser); //register

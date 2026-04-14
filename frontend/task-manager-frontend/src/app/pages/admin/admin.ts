@@ -150,7 +150,15 @@ export class Admin implements OnInit {
     });
   }
 
-  // ── Inline Subtasks ──
+  onToggleCompletion(task: any) {
+  this.AdminService.toggleTaskCompletion(this.selectedUser.id, task.id).subscribe({
+    next: (response: any) => {
+      task.is_completed = response.is_completed;
+      this.cdr.detectChanges();
+    },
+    error: (err) => console.error(err)
+  });
+}
 
   onToggleSubtasks(task: any) {
     if (this.expandedTaskId === task.id) {
@@ -205,6 +213,16 @@ export class Admin implements OnInit {
       error: (err) => console.error(err)
     });
   }
+
+  onToggleSubtaskCompletion(taskId: number, subtask: any) {
+  this.AdminService.toggleSubtaskCompletion(this.selectedUser.id, taskId, subtask.id).subscribe({
+    next: (response: any) => {
+      subtask.is_completed = response.is_completed;
+      this.cdr.detectChanges();
+    },
+    error: (err) => console.error(err)
+  });
+}
 
   onLogout() {
     this.AuthService.logout().subscribe({

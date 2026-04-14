@@ -328,6 +328,13 @@
   border-radius: 50%;
   border: 1.5px solid var(--border);
   flex-shrink: 0;
+   cursor: pointer;
+  transition: transform 0.1s, background 0.15s, border-color 0.15s;
+}
+
+.task-status-dot:hover {
+  transform: scale(1.2);
+  border-color: var(--accent);
 }
 
 .task-status-dot.done { background: var(--accent); border-color: var(--accent); }

@@ -1,9 +1,8 @@
 <div class="admin-page">
-
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <img src="simpl-32.png" alt="Simpl logo" class="brand-icon">
+      <img src="simpl-32.png" alt="Simpl logo" class="brand-icon" />
       <h1>Simpl</h1>
     </div>
 
@@ -13,8 +12,7 @@
       <button class="nav-item" (click)="router.navigate(['/tasks'])">My Tasks</button>
       <button class="nav-item" (click)="router.navigate(['/logs'])">Activity</button>
       <button class="nav-item active">Users</button>
-     <button class="nav-item logout-mobile" (click)="onLogout()">Logout</button>
-
+      <button class="nav-item logout-mobile" (click)="onLogout()">Logout</button>
     </nav>
 
     <div class="sidebar-bottom">
@@ -27,10 +25,12 @@
     <div class="users-title">All Users</div>
 
     @for (user of users; track user.id) {
-      <div class="user-item"
-           [class.selected]="selectedUser?.id === user.id"
-           (click)="onSelectUser(user)">
-        <div class="user-avatar">{{ user.username.slice(0,2) }}</div>
+      <div
+        class="user-item"
+        [class.selected]="selectedUser?.id === user.id"
+        (click)="onSelectUser(user)"
+      >
+        <div class="user-avatar">{{ user.username.slice(0, 2) }}</div>
         <div class="user-info">
           <span class="user-name">{{ user.username }}</span>
           <span class="user-role">{{ user.role }}</span>
@@ -45,7 +45,6 @@
 
   <!-- Main Content -->
   <main class="admin-main">
-
     @if (!selectedUser) {
       <div class="empty-state">
         <span class="empty-icon">◎</span>
@@ -54,11 +53,10 @@
     }
 
     @if (selectedUser) {
-
       <!-- User Header -->
       <div class="user-header">
         <div class="user-header-left">
-          <div class="user-avatar-lg">{{ selectedUser.username.slice(0,2) }}</div>
+          <div class="user-avatar-lg">{{ selectedUser.username.slice(0, 2) }}</div>
           <div>
             <h2 class="page-title">{{ selectedUser.username }}</h2>
             <p class="user-email">{{ selectedUser.email || '—' }}</p>
@@ -93,21 +91,35 @@
 
       <div class="task-list">
         @for (task of userTasks; track task.id) {
-
           @if (editingTask?.id === task.id) {
             <div class="edit-panel">
-              <input class="input-field" [(ngModel)]="editTitle" name="editTitle" placeholder="Title"/>
-              <input class="input-field" [(ngModel)]="editDescription" name="editDescription" placeholder="Description"/>
+              <input
+                class="input-field"
+                [(ngModel)]="editTitle"
+                name="editTitle"
+                placeholder="Title"
+              />
+              <input
+                class="input-field"
+                [(ngModel)]="editDescription"
+                name="editDescription"
+                placeholder="Description"
+              />
               <div class="edit-actions">
                 <button class="btn-save" (click)="onSaveEdit()">Save</button>
                 <button class="btn-cancel" (click)="onCancelEdit()">Cancel</button>
               </div>
             </div>
           } @else {
-
             <div class="task-card" [class.completed]="task.is_completed">
               <div class="task-card-left">
-                <div class="task-status-dot" [class.done]="task.is_completed"></div>
+                <div
+                  class="task-status-dot"
+                  [class.done]="task.is_completed"
+                  (click)="onToggleCompletion(task)"
+                  title="{{ task.is_completed ? 'Mark incomplete' : 'Mark complete' }}"
+                  style="cursor: pointer"
+                ></div>
                 <div class="task-info">
                   <h3 class="task-title">{{ task.title }}</h3>
                   <p class="task-desc">{{ task.description || '—' }}</p>
@@ -121,14 +133,15 @@
                   }
                 </button>
                 <button class="btn-action btn-edit" (click)="onEditTask(task)">Edit</button>
-                <button class="btn-action btn-delete" (click)="onDeleteTask(task.id)">Delete</button>
+                <button class="btn-action btn-delete" (click)="onDeleteTask(task.id)">
+                  Delete
+                </button>
               </div>
             </div>
 
             <!-- Inline Subtasks Dropdown -->
             @if (expandedTaskId === task.id) {
               <div class="subtasks-expanded">
-
                 @for (subtask of subtasksMap[task.id]; track subtask.id) {
                   @if (editingSubtask?.subtaskId === subtask.id) {
                     <div class="subtask-edit-panel">
@@ -151,14 +164,28 @@
                     </div>
                   } @else {
                     <div class="subtask-row" [class.completed]="subtask.is_completed">
-                      <div class="task-status-dot" [class.done]="subtask.is_completed"></div>
+                      <div
+                        class="task-status-dot"
+                        [class.done]="subtask.is_completed"
+                        (click)="onToggleSubtaskCompletion(task.id, subtask)"
+                      ></div>
                       <div class="subtask-info">
                         <span class="subtask-title">{{ subtask.title }}</span>
                         <span class="subtask-desc">{{ subtask.description || '—' }}</span>
                       </div>
                       <div class="subtask-actions">
-                        <button class="btn-action btn-edit" (click)="onEditSubtask(task.id, subtask)">Edit</button>
-                        <button class="btn-action btn-delete" (click)="onDeleteSubtaskOfUser(task.id, subtask.id)">Delete</button>
+                        <button
+                          class="btn-action btn-edit"
+                          (click)="onEditSubtask(task.id, subtask)"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          class="btn-action btn-delete"
+                          (click)="onDeleteSubtaskOfUser(task.id, subtask.id)"
+                        >
+                          Delete
+                        </button>
                       </div>
                     </div>
                   }
@@ -167,10 +194,8 @@
                 @if (!subtasksMap[task.id]?.length) {
                   <p class="subtasks-empty">No subtasks.</p>
                 }
-
               </div>
             }
-
           }
         }
 
@@ -181,9 +206,7 @@
           </div>
         }
       </div>
-
     }
-
   </main>
 
   <!-- Notification Toast -->
@@ -192,5 +215,4 @@
       {{ notification }}
     </div>
   }
-
 </div>
