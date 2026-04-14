@@ -10,7 +10,6 @@ const {authLimiter} = require("../middleware/rateLimiter");
 const verifyRole = require("../middleware/verifyRole");
 const {getAllUsers,deleteUser,getTasksOfUser,updateTaskofUser,deleteTaskofUser,toggleCompletionadmin, getSubtasksofUser, updateSubtaskofUser, deleteSubtaskofUser} = require("../controllers/adminActionController");
 
-
 //regular user routes
 router.get("/tasks",verifyJWT,verifyRole(["USER","ADMIN"]),getTasks); //get user tasks
 router.post("/tasks",verifyJWT,verifyRole(["USER","ADMIN"]),addTask); //add a specific task
@@ -35,15 +34,10 @@ router.get("/admin/users/:userid/tasks/:taskid/subtasks", verifyJWT, verifyRole(
 router.post("/admin/users/:userid/tasks/:taskid/subtasks/:subtaskid", verifyJWT, verifyRole(["ADMIN"]), updateSubtaskofUser);
 router.delete("/admin/users/:userid/tasks/:taskid/subtasks/:subtaskid", verifyJWT, verifyRole(["ADMIN"]), deleteSubtaskofUser);
 
-
-
 //auth routes
-router.post("/signup", registerUser); //register
-router.post("/login", loginUser);  //login
+router.post("/signup",authLimiter, registerUser); //register
+router.post("/login",authLimiter, loginUser);  //login
 router.get("/refresh", UserrefreshToken);  //refresh token
 router.post("/logout",logOut);  //logout user
-
-
-
 
 module.exports = router;

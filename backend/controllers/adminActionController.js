@@ -28,7 +28,6 @@ const deleteUser = async (req, res) => {
     const [result] = await db.query('DELETE FROM users WHERE id = ?', [userId]);
     if (result.affectedRows === 0) return res.status(404).json({ message: 'User not found' });
   
-
     await db.query(
       "INSERT INTO logs (user_id, action, activity_type) VALUES (?, ?, ?)",
       [adminId, `ADMIN DELETED USER: ${username}`, "ADMIN"]
@@ -243,12 +242,10 @@ const updateSubtaskofUser = async (req, res) => {
       "UPDATE subtasks SET title = ?, description = ? WHERE id = ?",
       [newtitle || subtask.title, newdescription || subtask.description, subtaskId]
     );
-
     await db.query(
       "INSERT INTO logs (user_id, action, activity_type) VALUES (?, ?, ?)",
       [adminId, `ADMIN MODIFIED SUBTASK: ${subtask.title}`, "ADMIN"]
     );
-
     io.to(`user_${userId}`).emit('notification', {
       message: `Your subtask "${subtask.title}" was edited by an admin`,
       type: 'info'
@@ -258,7 +255,6 @@ const updateSubtaskofUser = async (req, res) => {
       message: `Subtask "${subtask.title}" of user ${userId} was edited`,
       type: 'info'
     });
-
     const useremail = await getUserEmail(userId);
     if (useremail) {
       const { subject, html } = templates.subtaskUpdated(req.user.username, newtitle || subtask.title, subtask.parentTaskTitle);
