@@ -1,6 +1,6 @@
 import { SocketService } from './../../services/socket';
 import { Component, inject, OnInit, ChangeDetectorRef, ViewEncapsulation } from '@angular/core';
-import { Task } from '../../services/task';
+import { TaskService } from '../../services/task';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -31,7 +31,7 @@ export class Tasks implements OnInit {
   newSubTaskDescription = '';
   editingSubtask: { taskId: number, subtaskId: number, title: string, description: string } | null = null;
 
-  private taskService = inject(Task);
+  private taskService = inject(TaskService);
   router = inject(Router);
   private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
