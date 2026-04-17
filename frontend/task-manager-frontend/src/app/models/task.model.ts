@@ -6,6 +6,7 @@ export interface Task {
     is_completed: 0|1;
     created_at:string; 
     updated_at:string;
+    subtaskCount:number;
 }
 
 export interface Subtask{ 
@@ -43,4 +44,9 @@ export interface DecodedToken{
 export interface SocketNotification{
     message:string; 
     type:'succes' | 'error' | 'info';
+}
+
+export interface SubtaskEdit{
+    taskId:number;
+    subtask:Subtask;
 }

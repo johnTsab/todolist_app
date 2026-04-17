@@ -33,7 +33,7 @@
 
       <!-- Add Task -->
       <section class="add-task-section">
-        <form class="form-row" (ngSubmit)="onAddTask()">
+        <form class="form-row" (ngSubmit)="AddTask()">
           <input
             class="input-field"
             [(ngModel)]="newTaskTitle"
@@ -53,15 +53,15 @@
 
       <!-- Count -->
       <div class="tasks-meta">
-        <span class="task-count">{{ tasks.length }} task(s)</span>
+        <span class="task-count">{{ tasks().length }} task(s)</span>
       </div>
 
       <!-- List -->
       <section class="task-list">
 
-        @for (task of tasks; track task.id) {
+        @for (task of tasks(); track task.id) {
 
-          @if(editingTask?.id === task.id){
+          @if(editingTask()?.id === task.id){
             <div class="edit-panel">
               <input class="input-field" [(ngModel)]="editTitle" name="editTitle" placeholder="Title" />
               <input class="input-field" [(ngModel)]="editDescription" name="editDescription" placeholder="Description (optional)" />
@@ -82,8 +82,8 @@
               </div>
               <div class="task-card-actions">
                 <button class="btn-action btn-subtasks" (click)="onToggleSubtasks(task)">
-                  {{ expandedTaskId === task.id ? '▴' : '▾' }} Subtasks
-                  @if(task.subtaskCount > 0){
+                  {{ expandedTaskId() === task.id ? '▴' : '▾' }} Subtasks
+                  @if(task.subtaskCount> 0){
                     <span class="subtask-badge">{{ task.subtaskCount }}</span>
                   }
                 </button>
@@ -93,21 +93,21 @@
             </div>
 
             <!-- Inline Subtasks Dropdown -->
-            @if (expandedTaskId === task.id) {
+            @if (expandedTaskId() === task.id) {
               <div class="subtasks-expanded">
 
-                @for (subtask of subtasksMap[task.id]; track subtask.id) {
-                  @if (editingSubtask?.subtaskId === subtask.id) {
+                @for (subtask of subtasksMap()[task.id] || []; track subtask.id) {
+                  @if (editingSubtask()?.subtask?.id === subtask.id) {
                     <div class="subtask-edit-panel">
                       <input
                         class="input-field"
-                        [(ngModel)]="editingSubtask!.title"
+                        [(ngModel)]="newSubtaskTitle"
                         name="subEditTitle"
                         placeholder="Subtask title"
                       />
                       <input
                         class="input-field"
-                        [(ngModel)]="editingSubtask!.description"
+                        [(ngModel)]="newSubTaskDescription"
                         name="subEditDesc"
                         placeholder="Subtask description"
                       />
@@ -131,7 +131,7 @@
                   }
                 }
 
-                @if (!subtasksMap[task.id]?.length) {
+                @if (!subtasksMap()[task.id]?.length) {
                   <p class="subtasks-empty">No subtasks yet.</p>
                 }
 
@@ -158,7 +158,7 @@
           }
         }
 
-        @if (tasks.length === 0) {
+        @if (tasks().length === 0) {
           <div class="empty-state">
             <span class="empty-icon">◎</span>
             <p>No tasks yet — add one above!</p>
@@ -171,9 +171,9 @@
   </div>
 
   <!-- Notification Toast -->
-  @if (notification && notification.trim()) {
+  @if (notification() && notification().trim()) {
     <div class="notification-toast">
-      {{ notification }}
+      {{ notification() }}
     </div>
   }
 

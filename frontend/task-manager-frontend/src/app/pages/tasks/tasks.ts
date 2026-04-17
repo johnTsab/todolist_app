@@ -1,10 +1,12 @@
 import { SocketService } from './../../services/socket';
-import { Component, inject, OnInit, ChangeDetectorRef, ViewEncapsulation } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef, ViewEncapsulation,signal} from '@angular/core';
 import { TaskService } from '../../services/task';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth';
+import {Task,Subtask,SubtaskEdit} from '../../models/task.model';
+
 
 @Component({
   selector: 'app-tasks',
@@ -15,21 +17,21 @@ import { AuthService } from '../../services/auth';
 })
 export class Tasks implements OnInit {
   isAdmin = false;
-  tasks: any[] = [];
+  tasks = signal<Task[]>([]);
   username = '';
   newTaskTitle = '';
   newTaskDescription = '';
-  editingTask: any = null;
+  editingTask = signal<Task|null>(null);
   editTitle = '';
   editDescription = '';
-  notification = '';
+  notification =signal('');
 
-  // Inline subtasks (dropdown style)
-  expandedTaskId: number | null = null;
-  subtasksMap: { [taskId: number]: any[] } = {};
+  // Inline subtasks
+  expandedTaskId = signal<number|null>(null);
+  subtasksMap= signal<Record<number,Subtask[]>>({});
   newSubtaskTitle = '';
   newSubTaskDescription = '';
-  editingSubtask: { taskId: number, subtaskId: number, title: string, description: string } | null = null;
+  editingSubtask=signal<SubtaskEdit|null>(null);
 
   private taskService = inject(TaskService);
   router = inject(Router);
@@ -46,13 +48,14 @@ export class Tasks implements OnInit {
       this.SocketService.connect(decoded.userId);
 
       this.SocketService.on('notification', (data) => {
-        this.notification = data.message;
+        this.notification.set(data.message);
         this.loadTasks();
-        if (this.expandedTaskId) {
-          this.loadSubtasksOfTask(this.expandedTaskId);
+        const taskId = this.expandedTaskId();
+        if(taskId!==null){
+          this.loadSubtasksOfTask(taskId);
         }
         this.cdr.detectChanges();
-        setTimeout(() => { this.notification = ''; this.cdr.detectChanges(); }, 4000);
+        setTimeout(() => { this.notification.set('');}, 4000);
       });
     }
     this.loadTasks();
@@ -60,46 +63,43 @@ export class Tasks implements OnInit {
 
   loadTasks() {
     this.taskService.getTasks().subscribe({
-      next: (response: any) => {
-        this.tasks = response;
-        this.cdr.detectChanges();
+      next: (tasks:Task[]) => {
+        this.tasks.set(tasks);
       },
       error: (err) => console.error('Σφάλμα', err)
     });
   }
 
-  onAddTask() {
+  AddTask() {
     this.taskService.addTask(this.newTaskTitle, this.newTaskDescription).subscribe({
-      next: () => {
-        this.loadTasks();
+      next: (newTask:Task) => {
+        this.tasks.update(tasks=>[...tasks,newTask])
         this.newTaskTitle = '';
         this.newTaskDescription = '';
-        this.cdr.detectChanges();
       },
       error: (err) => console.error(err)
     });
   }
 
-  onEditTask(task: any) {
-    this.editingTask = task;
+  onEditTask(task: Task) {
+    this.editingTask.set(task);
     this.editTitle = task.title;
     this.editDescription = task.description;
-    this.cdr.detectChanges();
   }
 
   onSaveEdit() {
-    if (!this.editingTask) return;
-    this.taskService.updateTask(this.editingTask.id, this.editTitle, this.editDescription).subscribe({
+    const task = this.editingTask();
+    if(!task)return;
+    this.taskService.updateTask(task.id,this.editTitle, this.editDescription).subscribe({
       next: () => {
-        this.loadTasks();
-        this.editingTask = null;
+        this.editingTask.set(null);
       },
       error: (err) => console.error(err)
     });
   }
 
   onCancelEdit() {
-    this.editingTask = null;
+    this.editingTask.set(null);
   }
 
   onDeleteTask(task: any) {
@@ -112,35 +112,34 @@ export class Tasks implements OnInit {
     });
   }
 
-  onToggleComplete(task: any) {
+  onToggleComplete(task:Task) {
     this.taskService.toggleTask(task.id).subscribe({
-      next: () => {
-        this.loadTasks();
-        this.cdr.detectChanges();
-      },
+      next: () => {this.loadTasks},
       error: (err) => console.error(err)
     });
   }
 
   // ── Inline Subtasks ──
 
-  onToggleSubtasks(task: any) {
-    if (this.expandedTaskId === task.id) {
-      this.expandedTaskId = null;
-    } else {
-      this.expandedTaskId = task.id;
+  onToggleSubtasks(task:Task) {
+    const currentId = this.expandedTaskId();
+    if(currentId === task.id){
+      this.expandedTaskId.set(null);
+    }else{
+      this.expandedTaskId.set(task.id);
       this.loadSubtasksOfTask(task.id);
     }
     this.newSubtaskTitle = '';
     this.newSubTaskDescription = '';
-    this.editingSubtask = null;
-    this.cdr.detectChanges();
+    this.editingSubtask.set(null);
   }
 
   loadSubtasksOfTask(taskId: number) {
     this.taskService.getsubTasks(taskId).subscribe({
-      next: (response: any) => {
-        this.subtasksMap[taskId] = [...response];
+      next: (subtasks: Subtask[]) => {
+        this.subtasksMap.update(map=>({
+          ...map,[taskId]:subtasks
+        }))
         this.cdr.detectChanges();
       },
       error: (err) => console.error(err)
@@ -150,60 +149,59 @@ export class Tasks implements OnInit {
   onAddSubtask(taskId: number) {
     if (!this.newSubtaskTitle.trim()) return;
     this.taskService.addsubTask(taskId, this.newSubtaskTitle, this.newSubTaskDescription).subscribe({
-      next: () => {
+      next: (newSubtask:Subtask) => {
         this.loadSubtasksOfTask(taskId);
         this.loadTasks();
         this.newSubtaskTitle = '';
         this.newSubTaskDescription = '';
-        this.cdr.detectChanges();
       },
       error: (err) => console.error(err)
     });
   }
 
   onDeleteSubtask(subtaskId: number) {
-    if (!this.expandedTaskId) return;
-    this.taskService.deleteSubTask(this.expandedTaskId, subtaskId).subscribe({
+    const taskId = this.expandedTaskId();
+    if (taskId===null) return;
+    this.taskService.deleteSubTask(taskId, subtaskId).subscribe({
       next: () => {
-        this.loadSubtasksOfTask(this.expandedTaskId!);
+        this.loadSubtasksOfTask(taskId);
         this.loadTasks();
-        this.cdr.detectChanges();
       },
       error: (err) => console.error(err)
     });
   }
 
-  onToggleCompleteSub(subtask: any) {
-    if (!this.expandedTaskId) return;
-    this.taskService.toggleSubtask(this.expandedTaskId, subtask.id).subscribe({
+  onToggleCompleteSub(subtask: Subtask) {
+    const taskId = this.expandedTaskId();
+    if (taskId===null) return;
+    this.taskService.toggleSubtask(taskId, subtask.id).subscribe({
       next: () => {
-        this.loadSubtasksOfTask(this.expandedTaskId!);
+        this.loadSubtasksOfTask(taskId);
         this.cdr.detectChanges();
       },
       error: (err) => console.error(err)
     });
   }
 
-  onEditSubtask(taskId: number, subtask: any) {
-    this.editingSubtask = { taskId, subtaskId: subtask.id, title: subtask.title, description: subtask.description };
-    this.cdr.detectChanges();
+  onEditSubtask(taskId: number, subtask: Subtask) {
+    this.editingSubtask.set({taskId, subtask});
   }
 
   onSaveSubtaskEdit() {
-   if (!this.editingSubtask) return;
-   const { taskId, subtaskId, title, description } = this.editingSubtask;
-   this.taskService.updateSubtask(taskId, subtaskId, title, description).subscribe({
+    const edit = this.editingSubtask();
+    if(!edit)return;
+    const {taskId,subtask} = edit;
+      this.taskService.updateSubtask(taskId, subtask.id, subtask.title, subtask.description).subscribe({
       next: () => {
       this.loadSubtasksOfTask(taskId);
-      this.editingSubtask = null;
-       this.cdr.detectChanges();
+      this.editingSubtask.set(null);
       },
       error: (err) => console.error(err)
     });
   }
 
   onCancelSubtaskEdit() {
-    this.editingSubtask = null;
+    this.editingSubtask.set(null);
     this.cdr.detectChanges();
   }
 
