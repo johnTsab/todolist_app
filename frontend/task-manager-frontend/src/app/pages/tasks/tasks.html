@@ -63,8 +63,8 @@
 
           @if(editingTask()?.id === task.id){
             <div class="edit-panel">
-              <input class="input-field" [(ngModel)]="editTitle" name="editTitle" placeholder="Title" />
-              <input class="input-field" [(ngModel)]="editDescription" name="editDescription" placeholder="Description (optional)" />
+              <input class="input-field" [(ngModel)]="editTaskForm.title" name="editTitle" placeholder="Title" />
+              <input class="input-field" [(ngModel)]="editTaskForm.description" name="editDescription" placeholder="Description (optional)" />
               <div class="edit-actions">
                 <button class="btn-save" (click)="onSaveEdit()">Save</button>
                 <button class="btn-cancel" (click)="onCancelEdit()">Cancel</button>
@@ -101,14 +101,12 @@
                     <div class="subtask-edit-panel">
                       <input
                         class="input-field"
-                        [(ngModel)]="newSubtaskTitle"
-                        name="subEditTitle"
+                        [(ngModel)]="editSubtaskForm.title"
                         placeholder="Subtask title"
                       />
                       <input
                         class="input-field"
-                        [(ngModel)]="newSubTaskDescription"
-                        name="subEditDesc"
+                        [(ngModel)]="editSubtaskForm.description"
                         placeholder="Subtask description"
                       />
                       <div class="edit-actions">

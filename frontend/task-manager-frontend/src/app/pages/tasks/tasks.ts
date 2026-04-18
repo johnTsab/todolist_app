@@ -1,3 +1,4 @@
+import { DecodedToken } from './../../models/task.model';
 import { SocketService } from './../../services/socket';
 import { Component, inject, OnInit, ChangeDetectorRef, ViewEncapsulation,signal} from '@angular/core';
 import { TaskService } from '../../services/task';
@@ -6,27 +7,29 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth';
 import {Task,Subtask,SubtaskEdit} from '../../models/task.model';
+import { ChangeDetectionStrategy } from '@angular/core';
 
 
 @Component({
   selector: 'app-tasks',
   imports: [CommonModule, FormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './tasks.html',
   styleUrl: './tasks.css',
   encapsulation: ViewEncapsulation.None
 })
 export class Tasks implements OnInit {
+  editTaskForm = {title:'',description:''};
   isAdmin = false;
   tasks = signal<Task[]>([]);
   username = '';
   newTaskTitle = '';
   newTaskDescription = '';
   editingTask = signal<Task|null>(null);
-  editTitle = '';
-  editDescription = '';
   notification =signal('');
 
   // Inline subtasks
+  editSubtaskForm = {title:'',description:''};
   expandedTaskId = signal<number|null>(null);
   subtasksMap= signal<Record<number,Subtask[]>>({});
   newSubtaskTitle = '';
@@ -40,13 +43,11 @@ export class Tasks implements OnInit {
   private SocketService = inject(SocketService);
 
   ngOnInit() {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      const decoded = JSON.parse(atob(token.split('.')[1]));
-      this.username = decoded.username;
-      this.isAdmin = decoded.role === 'ADMIN';
-      this.SocketService.connect(decoded.userId);
-
+    const decodedToken = this.authService.getDecodedToken(); //return decoded token
+    if (decodedToken) {
+      this.username = decodedToken.username
+      this.isAdmin = decodedToken.role === "ADMIN";
+      this.SocketService.connect(decodedToken.userId);
       this.SocketService.on('notification', (data) => {
         this.notification.set(data.message);
         this.loadTasks();
@@ -54,7 +55,6 @@ export class Tasks implements OnInit {
         if(taskId!==null){
           this.loadSubtasksOfTask(taskId);
         }
-        this.cdr.detectChanges();
         setTimeout(() => { this.notification.set('');}, 4000);
       });
     }
@@ -83,14 +83,13 @@ export class Tasks implements OnInit {
 
   onEditTask(task: Task) {
     this.editingTask.set(task);
-    this.editTitle = task.title;
-    this.editDescription = task.description;
+    this.editTaskForm = {title:task.title, description:task.description};
   }
 
   onSaveEdit() {
     const task = this.editingTask();
     if(!task)return;
-    this.taskService.updateTask(task.id,this.editTitle, this.editDescription).subscribe({
+    this.taskService.updateTask(task.id,this.editTaskForm.title, this.editTaskForm.description).subscribe({
       next: () => {
         this.editingTask.set(null);
       },
@@ -104,23 +103,19 @@ export class Tasks implements OnInit {
 
   onDeleteTask(task: any) {
     this.taskService.deleteTask(task.id).subscribe({
-      next: () => {
-        this.loadTasks();
-        this.cdr.detectChanges();
-      },
+      next: () => {},
       error: (err) => console.error(err)
     });
   }
 
   onToggleComplete(task:Task) {
     this.taskService.toggleTask(task.id).subscribe({
-      next: () => {this.loadTasks},
+      next: () => {},
       error: (err) => console.error(err)
     });
   }
 
   // ── Inline Subtasks ──
-
   onToggleSubtasks(task:Task) {
     const currentId = this.expandedTaskId();
     if(currentId === task.id){
@@ -137,10 +132,7 @@ export class Tasks implements OnInit {
   loadSubtasksOfTask(taskId: number) {
     this.taskService.getsubTasks(taskId).subscribe({
       next: (subtasks: Subtask[]) => {
-        this.subtasksMap.update(map=>({
-          ...map,[taskId]:subtasks
-        }))
-        this.cdr.detectChanges();
+        this.subtasksMap.update(map=>({...map,[taskId]:subtasks}))
       },
       error: (err) => console.error(err)
     });
@@ -177,7 +169,6 @@ export class Tasks implements OnInit {
     this.taskService.toggleSubtask(taskId, subtask.id).subscribe({
       next: () => {
         this.loadSubtasksOfTask(taskId);
-        this.cdr.detectChanges();
       },
       error: (err) => console.error(err)
     });
@@ -185,13 +176,14 @@ export class Tasks implements OnInit {
 
   onEditSubtask(taskId: number, subtask: Subtask) {
     this.editingSubtask.set({taskId, subtask});
+    this.editSubtaskForm = {title:subtask.title, description:subtask.description};
   }
 
   onSaveSubtaskEdit() {
     const edit = this.editingSubtask();
     if(!edit)return;
     const {taskId,subtask} = edit;
-      this.taskService.updateSubtask(taskId, subtask.id, subtask.title, subtask.description).subscribe({
+      this.taskService.updateSubtask(taskId, subtask.id, this.editSubtaskForm.title,this.editSubtaskForm.description).subscribe({
       next: () => {
       this.loadSubtasksOfTask(taskId);
       this.editingSubtask.set(null);
@@ -202,7 +194,6 @@ export class Tasks implements OnInit {
 
   onCancelSubtaskEdit() {
     this.editingSubtask.set(null);
-    this.cdr.detectChanges();
   }
 
   onLogout() {

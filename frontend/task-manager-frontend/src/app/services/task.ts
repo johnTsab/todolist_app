@@ -51,7 +51,7 @@ toggleSubtask(id:number,subid:number):Observable<void>{
 }
 
   updateSubtask(id: number,subid:number, title: string, description: string):Observable<void>{
-  return this.http.post<void>(`${this.apiUrl}/tasks/${id}/subtasks/${subid}`, { newtitle: title, newdescription: description });
+  return this.http.post<void>(`${this.apiUrl}/tasks/${id}/subtasks/${subid}`, { newTitle: title, newDescription: description });
 }
 
 getLogs():Observable<Log[]>{

@@ -50,3 +50,9 @@ export interface SubtaskEdit{
     taskId:number;
     subtask:Subtask;
 }
+
+export interface DecodedToken{
+    userId:number;
+    username:string;
+    role:"ADMIN"|"USER";
+}

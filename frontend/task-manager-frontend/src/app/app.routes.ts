@@ -1,18 +1,12 @@
 import { Routes } from '@angular/router';
-import {Login} from './pages/login/login';
-import {Tasks} from './pages/tasks/tasks';
-import {Logs} from './pages/logs/logs';
-import {Register} from './pages/register/register';
-import {Admin} from './pages/admin/admin';
-import { OauthCallbackComponent } from './pages/oauth-callback/oauth-callback';
 
 export const routes: Routes = [
     {path:'',redirectTo:'login',pathMatch:'full'},
-    {path:'login',component:Login},
-    {path:'tasks',component:Tasks},
-    {path:'logs',component:Logs},
-    {path:'register',component:Register},
-    {path:'admin',component:Admin},
-    {path:'oauth-callback',component:OauthCallbackComponent},
+    {path:'login',loadComponent:()=>import('./pages/login/login').then(m=>m.Login)},
+    {path:'tasks',loadComponent:()=>import('./pages/tasks/tasks').then(m=>m.Tasks)},
+    {path:'logs',loadComponent:()=>import('./pages/logs/logs').then(m=>m.Logs)},
+    {path:'register',loadComponent:()=>import('./pages/register/register').then(m=>m.Register)},
+    {path:'admin',loadComponent:()=>import('./pages/admin/admin').then(m=>m.Admin)},
+    {path:'oauth-callback',loadComponent:()=>import('./pages/oauth-callback/oauth-callback').then(m=>m.OauthCallbackComponent)},
     { path: '**', redirectTo: '/login' }
 ];

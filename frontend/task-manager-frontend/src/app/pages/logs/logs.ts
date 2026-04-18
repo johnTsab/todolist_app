@@ -1,6 +1,6 @@
 import { AuthService } from './../../services/auth';
 import { Component,inject,OnInit,ChangeDetectorRef,ViewEncapsulation } from '@angular/core';
-import {Task} from '../../services/task';
+import {TaskService} from '../../services/task';
 import {Router} from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -18,7 +18,7 @@ export class Logs implements OnInit {
   logs: any[] = [];
   username = ' ';
 
-  private taskService = inject(Task);
+  private taskService = inject(TaskService);
   private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
   router = inject(Router);
